@@ -1,12 +1,5 @@
 import { useRef, useState } from 'react';
-import {
-  Download,
-  FileJson,
-  HardDriveDownload,
-  Trash2,
-  Upload,
-  X,
-} from 'lucide-react';
+import { Download, FileJson, HardDriveDownload, Trash2, Upload } from 'lucide-react';
 import {
   buildSingleCardFile,
   buildSingleTemplateFile,
@@ -54,14 +47,14 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
       activeProjectId: activeProject.id,
     });
     triggerJsonDownload(`ichibanboshi-backup-${dateTag}.ichiban-backup.json`, backup);
-    showToast(`已导出完整工作台备份（含 ${works.length} 份名片、${customTemplates.length} 套模板）`, 'success');
+    showToast(`已导出完整工作台备份（含 ${works.length} 份名片、${customTemplates.length} 套模板）✦`, 'success');
   };
 
   const handleExportActiveCard = () => {
     const file = buildSingleCardFile(activeProject);
     const safe = (activeProject.fields.name || 'card').replace(/[\\/:*?"<>|]/g, '_');
     triggerJsonDownload(`${safe}.ichiban-card.json`, file);
-    showToast(`已导出当前名片工程「${activeProject.title}」`, 'success');
+    showToast(`已导出当前名片工程「${activeProject.title}」✦`, 'success');
   };
 
   const handleExportActiveTemplate = () => {
@@ -72,13 +65,13 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
       color: activeProject.color,
       accent: activeProject.accent,
       bgDark: activeProject.bgDark,
-      paper: activeProject.paper,
+      paper: activeProject.frontPaper || activeProject.paper,
       craft: activeProject.craft,
       fieldsPreset: { ...activeProject.fields },
       regionCraftsPreset: { ...activeProject.regionCrafts },
     });
     triggerJsonDownload(`${tpl.name}.ichiban-template.json`, file);
-    showToast(`已导出模板文件「${tpl.name}」`, 'success');
+    showToast(`已导出模板文件「${tpl.name}」✦`, 'success');
   };
 
   const handleFilePick = async (file: File | undefined) => {
@@ -86,8 +79,7 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
     setErrorMsg('');
     try {
       const text = await file.text();
-      const result = parseImportedJson(text);
-      setParsed(result);
+      setParsed(parseImportedJson(text));
     } catch (err) {
       setParsed(null);
       setErrorMsg(err instanceof Error ? err.message : '导入解析失败');
@@ -97,86 +89,80 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
   const handleConfirmImport = () => {
     if (!parsed) return;
     const { summary } = importPayload(parsed, importMode);
-    showToast(summary, 'success');
+    showToast(`${summary} ✦`, 'success');
     setParsed(null);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl leaf-card border border-slate-200 shadow-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+    <div className="auth-modal is-open" role="dialog" aria-modal="true" aria-labelledby="backupModalTitle">
+      <div className="auth-modal__dialog !w-[min(680px,100%)] max-h-[88vh] overflow-y-auto">
+        <div className="auth-modal__head">
           <div>
-            <h2 className="text-lg font-black text-slate-900">本地备份导出 &amp; 工程导入续作</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              纯本地文件迁移：把缓存或修改的名片、自定义模板与资料导出保存，随时导入恢复上次进度
+            <div className="auth-modal__eyebrow">✦ LOCAL WORKSPACE CONTINUITY</div>
+            <h2 id="backupModalTitle" className="auth-modal__title">本地工程备份导出 &amp; 导入续作</h2>
+            <p className="text-xs text-[#535353] mt-1">
+              纯本地文件持久化：将新建/修改的名片、自定义模板导出保存，下次通过导入无缝接续制作
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer"
-            aria-label="关闭弹窗"
-          >
-            <X className="w-5 h-5" />
+          <button type="button" onClick={onClose} className="auth-modal__close cursor-pointer" aria-label="关闭窗口">
+            ×
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-          {/* Export section */}
+        <div className="space-y-6">
           <section className="space-y-3">
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[#333333] flex items-center gap-2">
               <Download className="w-4 h-4 text-[#FF7600]" />
-              1. 导出保存到本地电脑
+              1. 导出保存到本地磁盘
             </h3>
             <div className="grid sm:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={handleExportWorkspace}
-                className="text-left p-3.5 rounded-xl border-2 border-[#FF7600]/30 bg-orange-50/50 hover:border-[#FF7600] cursor-pointer transition"
+                className="text-left p-3.5 rounded-[0_18px_0_18px] border-2 border-[#FF7600]/40 bg-[#FFF7EC] hover:border-[#FF7600] cursor-pointer transition"
               >
-                <div className="flex items-center gap-1.5 font-bold text-sm text-slate-900">
+                <div className="flex items-center gap-1.5 font-bold text-sm text-[#333333]">
                   <HardDriveDownload className="w-4 h-4 text-[#FF7600]" />
-                  导出完整工作台备份
+                  导出完整备份
                 </div>
-                <p className="text-xs text-slate-600 mt-1">
-                  打包全部 {works.length} 份名片 + {customTemplates.length} 套模板 + 收藏与资料
+                <p className="text-xs text-[#535353] mt-1">
+                  {works.length} 份名片 + {customTemplates.length} 套模板 + 收藏与资料
                 </p>
               </button>
 
               <button
                 type="button"
                 onClick={handleExportActiveCard}
-                className="text-left p-3.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white cursor-pointer transition"
+                className="text-left p-3.5 rounded-[0_18px_0_18px] border border-[#E9E9E7] hover:border-[#F39800] bg-white cursor-pointer transition"
               >
-                <div className="flex items-center gap-1.5 font-bold text-sm text-slate-900">
-                  <FileJson className="w-4 h-4 text-blue-600" />
-                  仅导出当前名片工程
+                <div className="flex items-center gap-1.5 font-bold text-sm text-[#333333]">
+                  <FileJson className="w-4 h-4 text-[#0C7BBB]" />
+                  仅导出当前名片
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  生成 `.ichiban-card.json`，便于分享单卡或存档
+                <p className="text-xs text-[#535353] mt-1">
+                  生成 `.ichiban-card.json` 单卡工程文件
                 </p>
               </button>
 
               <button
                 type="button"
                 onClick={handleExportActiveTemplate}
-                className="text-left p-3.5 rounded-xl border border-slate-200 hover:border-slate-400 bg-white cursor-pointer transition"
+                className="text-left p-3.5 rounded-[0_18px_0_18px] border border-[#E9E9E7] hover:border-[#F39800] bg-white cursor-pointer transition"
               >
-                <div className="flex items-center gap-1.5 font-bold text-sm text-slate-900">
-                  <FileJson className="w-4 h-4 text-emerald-600" />
-                  仅导出当前配置模板
+                <div className="flex items-center gap-1.5 font-bold text-sm text-[#333333]">
+                  <FileJson className="w-4 h-4 text-[#008969]" />
+                  仅导出当前模板
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  生成 `.ichiban-template.json` 复用当前版式与材质预设
+                <p className="text-xs text-[#535353] mt-1">
+                  生成 `.ichiban-template.json` 复用当前版式材质
                 </p>
               </button>
             </div>
           </section>
 
-          {/* Import section */}
-          <section className="space-y-3 pt-4 border-t border-slate-200">
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <section className="space-y-3 pt-4 border-t border-[#E9E9E7]">
+            <h3 className="text-sm font-bold text-[#333333] flex items-center gap-2">
               <Upload className="w-4 h-4 text-[#FF7600]" />
               2. 导入上次保存的文件继续制作
             </h3>
@@ -186,7 +172,7 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                 e.preventDefault();
                 void handleFilePick(e.dataTransfer.files?.[0]);
               }}
-              className="border-2 border-dashed border-slate-300 hover:border-[#FF7600] rounded-xl p-5 text-center bg-slate-50/70"
+              className="border-2 border-dashed border-[#F39800]/50 hover:border-[#FF7600] rounded-[0_20px_0_20px] p-5 text-center bg-[#FFF7EC]/60"
             >
               <input
                 ref={fileInputRef}
@@ -195,28 +181,27 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                 onChange={(e) => void handleFilePick(e.target.files?.[0])}
                 className="hidden"
               />
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-[#333333]">
                 拖拽 `.ichiban-backup.json` / `.ichiban-card.json` / `.ichiban-template.json` 到此处
               </p>
-              <p className="text-xs text-slate-500 mt-1">或点击下方按钮从本地磁盘选择已保存的工程文件</p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3 px-4 py-2 rounded-lg bg-white border border-slate-300 hover:border-[#FF7600] text-xs font-bold text-slate-800 cursor-pointer"
+                className="mt-3 btn-outline btn-outline--sm bg-white"
               >
                 选择本地 JSON 文件
               </button>
             </div>
 
             {errorMsg && (
-              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+              <div className="p-3 rounded-lg bg-[#E30F25]/10 border border-[#E30F25]/30 text-xs text-[#E30F25] font-medium">
                 {errorMsg}
               </div>
             )}
 
             {parsed && (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-3">
-                <div className="text-xs font-bold text-emerald-900">
+              <div className="p-4 rounded-[0_18px_0_18px] bg-[#008969]/10 border border-[#008969]/30 space-y-3">
+                <div className="text-xs font-bold text-[#008969]">
                   {parsed.kind === 'workspace' &&
                     `识别为工作台全量备份：含 ${parsed.backup.works.length} 份名片、${parsed.backup.customTemplates.length} 套自定义模板（导出时间：${parsed.backup.exportedAt.slice(0, 10)}）`}
                   {parsed.kind === 'card' &&
@@ -226,7 +211,7 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                 </div>
 
                 {parsed.kind === 'workspace' && (
-                  <div className="flex flex-wrap gap-4 text-xs text-emerald-950">
+                  <div className="flex flex-wrap gap-4 text-xs text-[#333333]">
                     <label className="inline-flex items-center gap-1.5 cursor-pointer">
                       <input
                         type="radio"
@@ -234,7 +219,7 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                         checked={importMode === 'merge'}
                         onChange={() => setImportMode('merge')}
                       />
-                      <span>增量合并（保留现有本地数据并合并新增项目）</span>
+                      <span>增量合并（保留现有数据并合并导入项目）</span>
                     </label>
                     <label className="inline-flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -243,7 +228,7 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                         checked={importMode === 'replace'}
                         onChange={() => setImportMode('replace')}
                       />
-                      <span>完整覆盖恢复（完全还原至该备份快照）</span>
+                      <span>完整覆盖恢复（完全还原至该快照）</span>
                     </label>
                   </div>
                 )}
@@ -252,14 +237,14 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                   <button
                     type="button"
                     onClick={() => setParsed(null)}
-                    className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold cursor-pointer"
+                    className="prd-chip"
                   >
                     取消
                   </button>
                   <button
                     type="button"
                     onClick={handleConfirmImport}
-                    className="px-4 py-1.5 rounded-lg btn-brand text-xs font-bold cursor-pointer"
+                    className="btn-cta btn-cta--sm"
                   >
                     确认导入并打开
                   </button>
@@ -268,11 +253,8 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
             )}
           </section>
 
-          {/* Danger Zone */}
-          <section className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
-            <div className="text-xs text-slate-500">
-              清空当前浏览器本地缓存后将重置为 1 份默认初始名片。
-            </div>
+          <section className="pt-4 border-t border-[#E9E9E7] flex items-center justify-between gap-3">
+            <span className="text-xs text-[#535353]">清空当前浏览器 IndexedDB 缓存后将重置为默认名片。</span>
             <button
               type="button"
               onClick={async () => {
@@ -280,7 +262,7 @@ export function BackupModal({ open, onClose }: BackupModalProps) {
                 showToast('已重置本地工作台缓存', 'info');
                 onClose();
               }}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold cursor-pointer shrink-0"
+              className="auth-logout-btn inline-flex items-center gap-1.5 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               清空本地缓存

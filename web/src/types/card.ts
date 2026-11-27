@@ -102,6 +102,26 @@ export interface CanvasElement {
   opacity?: number;
   craft?: SurfaceCraftId;
   locked?: boolean;
+  hidden?: boolean;
+}
+
+export interface H5Config {
+  bio: string;
+  layout: 'card' | 'poster' | 'list';
+  slug: string;
+  showSns: {
+    x: boolean;
+    weibo: boolean;
+    bilibili: boolean;
+    xhs: boolean;
+    website: boolean;
+  };
+}
+
+export interface CardStats {
+  pv: number;
+  saves: number;
+  trend: number[];
 }
 
 export interface CardTemplate {
@@ -111,6 +131,8 @@ export interface CardTemplate {
   style: TemplateStyle;
   orient: TemplateOrient;
   layout: string;
+  sides?: 1 | 2;
+  badge?: 'NEW' | 'HOT' | '烫金';
   color: string;
   accent: string;
   bgDark?: boolean;
@@ -134,18 +156,25 @@ export interface CardProject {
   title: string;
   tplId: string;
   orient: TemplateOrient;
+  sides: 1 | 2;
   spec: SpecId;
   color: string;
   accent: string;
   bgDark: boolean;
   paper: PaperStockId;
+  frontPaper?: PaperStockId;
+  backPaper?: PaperStockId;
   craft: SurfaceCraftId;
   rounded: boolean;
+  cornerMm: 0 | 3 | 5;
+  showQr: boolean;
   side: 'front' | 'back';
   fields: CardFields;
   standee: StandeeConfig;
   regionCrafts: RegionCraftsMap;
   customElements: CanvasElement[];
+  h5: H5Config;
+  stats: CardStats;
   createdAt: string;
   updatedAt: string;
 }
@@ -153,12 +182,24 @@ export interface CardProject {
 export interface CreatorProfile {
   nickname: string;
   roleTitle: string;
+  tantou?: string;
+  tantouColor?: string;
   studioName: string;
   x: string;
+  weibo?: string;
   bilibili: string;
+  xhs?: string;
   website: string;
   motto: string;
   updatedAt: string;
+}
+
+export interface PrefillState {
+  name: string;
+  title: string;
+  company: string;
+  accentColor: string;
+  enabled: boolean;
 }
 
 export interface WorkspaceBackup {
@@ -201,7 +242,6 @@ export interface StockMeta {
   name: string;
   gsm: string;
   desc: string;
-  cssFilter?: string;
 }
 
 export interface CraftMeta {
@@ -216,4 +256,12 @@ export interface RegionMeta {
   label: string;
   side: 'front' | 'back';
   group: string;
+}
+
+export interface IdolPreset {
+  id: string;
+  name: string;
+  short: string;
+  color: string;
+  light?: boolean;
 }

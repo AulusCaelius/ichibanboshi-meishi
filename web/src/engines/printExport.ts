@@ -510,7 +510,7 @@ export async function renderPageCanvas(
   canvas.height = pxH;
   const ctx = canvas.getContext('2d')!;
 
-  const bgHex = spotMode ? '#FFFFFF' : resolveCardBgHex(project);
+  const bgHex = spotMode ? '#FFFFFF' : resolveCardBgHex(project, side);
   ctx.fillStyle = exp.cropMarks ? '#FFFFFF' : bgHex;
   ctx.fillRect(0, 0, pxW, pxH);
   ctx.fillStyle = bgHex;
@@ -577,10 +577,10 @@ export function buildCompositeSvgMarkup(
   const headerH = spotMode ? 30 : 0;
   const svgW = pageW * sides.length + gap * (sides.length - 1) + pad * 2;
   const svgH = pageH + pad * 2 + headerH;
-  const bgHex = spotMode ? '#FFFFFF' : resolveCardBgHex(project);
   const css = collectInlineCss();
 
   const slots = sides.map((side, idx) => {
+    const bgHex = spotMode ? '#FFFFFF' : resolveCardBgHex(project, side);
     const measured = measureLayout(project, template, side, sandboxEl, trimW);
     const xOff = pad + idx * (pageW + gap);
     const yOff = pad + headerH;

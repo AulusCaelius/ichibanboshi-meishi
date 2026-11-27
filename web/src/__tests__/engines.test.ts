@@ -7,6 +7,7 @@ import {
 import {
   DEFAULT_EXPORT_OPTIONS,
   applyPreflightFix,
+  buildPrintSpecText,
   runPreflightChecks,
 } from '../engines/preflight';
 import {
@@ -57,18 +58,28 @@ describe('QR Encoder & Share Codec', () => {
     expect(svg).toContain('<path d="');
   });
 
-  it('round-trips compact Base64url share payload', () => {
+  it('round-trips compact Base64url share payload including h5 config', () => {
     const proj = createProjectFromTemplate(SYSTEM_TEMPLATES[10], {
       name: '林栖 / Lin Qi',
       title: '品牌视觉设计师',
       motto: 'Keep light in every frame.',
     });
+    proj.cornerMm = 3;
+    proj.h5 = {
+      ...proj.h5,
+      bio: '独立视觉与立体印刷实验者',
+      layout: 'poster',
+      slug: 'lin-qi',
+    };
     const encoded = encodeSharePayload(proj);
     const decoded = decodeSharePayload(encoded);
     expect(decoded).not.toBeNull();
     expect(decoded?.fields.name).toBe('林栖 / Lin Qi');
     expect(decoded?.fields.title).toBe('品牌视觉设计师');
-    expect(buildCardShareUrl(proj, 'https://example.org')).toContain('#/card?d=');
+    expect(decoded?.cornerMm).toBe(3);
+    expect(decoded?.h5.layout).toBe('poster');
+    expect(decoded?.h5.bio).toBe('独立视觉与立体印刷实验者');
+    expect(buildCardShareUrl(proj, 'https://example.org')).toContain('#/card?');
   });
 });
 
@@ -149,5 +160,11 @@ describe('Preflight & Print Engine', () => {
     const zip = buildZipArchive([{ name: 'front.png', bytes: new Uint8Array([1, 2, 3]) }]);
     expect(zip[0]).toBe(0x50);
     expect(zip[1]).toBe(0x4b);
+
+    const specTpl = SYSTEM_TEMPLATES[0];
+    const specCard = createProjectFromTemplate(specTpl);
+    const specTxt = buildPrintSpecText(specCard, specTpl, { ...DEFAULT_EXPORT_OPTIONS, bleed: 2 });
+    expect(specTxt).toContain('四边出血 2mm');
+    expect(specTxt).toContain('94 × 58 mm');
   });
 });

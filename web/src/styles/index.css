@@ -1,42 +1,10 @@
 @import "tailwindcss";
+@import "./prd.css";
 @import "./card.css";
 
-@layer base {
-  :root {
-    --ichiban-orange: #FF7600;
-    --ichiban-amber: #F39800;
-    --ichiban-ink: #0F172A;
-    --ichiban-surface: #FFFFFF;
-    --ichiban-bg: #F9FAFB;
-  }
-
-  body {
-    font-family: "Inter", "Noto Sans SC", system-ui, -apple-system, sans-serif;
-    background-color: var(--ichiban-bg);
-    color: var(--ichiban-ink);
-  }
-}
-
-.leaf-card {
-  border-radius: 0 24px 0 24px;
-}
-
-.leaf-hero {
-  border-radius: 0 32px 0 32px;
-}
-
-.btn-brand {
-  background: linear-gradient(135deg, #FF7600 0%, #F39800 100%);
-  color: #ffffff;
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-
-.btn-brand:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px -8px rgba(255, 118, 0, 0.52);
-}
-
-.glass-nav {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(14px);
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background-color: var(--white);
+  -webkit-font-smoothing: antialiased;
 }

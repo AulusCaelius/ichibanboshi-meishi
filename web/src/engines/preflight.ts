@@ -8,15 +8,17 @@ export interface PreflightCheck {
   detail: string;
   canAutoFix: boolean;
   autoFixLabel?: string;
+  fixTarget?: { mode: 'form' | 'canvas'; target: string; side: 'front' | 'back' };
 }
 
 export interface ExportOptions {
   format: 'pdf' | 'png' | 'jpg' | 'svg';
   color: 'cmyk' | 'rgb';
   dpi: 300 | 600;
-  bleed: 0 | 3;
+  bleed: 0 | 2 | 3;
   cropMarks: boolean;
   doubleSided: boolean;
+  textMode: 'outline' | 'embed';
   spot: boolean;
   autoK100Text: boolean;
   strokeMinPt: number;
@@ -29,6 +31,7 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
   bleed: 3,
   cropMarks: true,
   doubleSided: true,
+  textMode: 'outline',
   spot: true,
   autoK100Text: true,
   strokeMinPt: 0.25,
@@ -41,7 +44,7 @@ export function runPreflightChecks(
 ): PreflightCheck[] {
   const dims = getCardDims(project);
   const checks: PreflightCheck[] = [];
-  const customEls = project.customElements || [];
+  const customEls = (project.customElements || []).filter((e) => !e.hidden);
 
   // 1. 图片分辨率
   const imgEls = customEls.filter((e) => e.type === 'image');
@@ -76,6 +79,7 @@ export function runPreflightChecks(
           detail: '部分自由画布图层接近裁切边缘（小于 3mm 安全内缩）',
           canAutoFix: true,
           autoFixLabel: '一键收进安全区',
+          fixTarget: { mode: 'canvas', target: offender.id, side: offender.side },
         }
       : {
           id: 'safezone',
@@ -103,6 +107,7 @@ export function runPreflightChecks(
       detail: `画布文字最小约 ${minTextEl.pt.toFixed(1)}pt（印刷建议 ≥ 6pt）`,
       canAutoFix: true,
       autoFixLabel: '一键放大至 6pt',
+      fixTarget: { mode: 'canvas', target: minTextEl.el.id, side: minTextEl.el.side },
     });
   } else {
     checks.push({
@@ -123,6 +128,7 @@ export function runPreflightChecks(
       detail: `当前细线基准 ${exp.strokeMinPt}pt 低于印厂 0.25pt 显影阈值`,
       canAutoFix: true,
       autoFixLabel: '加粗至 0.25pt',
+      fixTarget: { mode: 'form', target: 'name', side: 'front' },
     });
   } else {
     checks.push({
@@ -143,6 +149,7 @@ export function runPreflightChecks(
           status: 'warn',
           detail: '含彩色插画图像，导出 DeviceCMYK PDF 时将自动进行 GCR 印刷分色',
           canAutoFix: false,
+          fixTarget: { mode: 'form', target: 'name', side: 'front' },
         }
       : {
           id: 'color',
@@ -158,7 +165,10 @@ export function runPreflightChecks(
     id: 'font',
     title: '字体版权与嵌入安全',
     status: 'pass',
-    detail: '采用开源 Noto Sans / Inter 字体族，支持全矢量栅格化防乱码',
+    detail:
+      exp.textMode === 'outline'
+        ? '文字全轮廓栅格化就绪，SIL OFL 开源字体支持无损输出'
+        : '全部使用 SIL OFL 开源授权字体，支持字形内嵌防乱码',
     canAutoFix: false,
   });
 
@@ -168,8 +178,9 @@ export function runPreflightChecks(
     id: 'required',
     title: '核心署名信息检查',
     status: hasName ? 'pass' : 'error',
-    detail: hasName ? `主姓名完整（${project.fields.name.trim()}）` : '正面主姓名/昵称为空，请回到编辑器补充后再输出印刷稿',
+    detail: hasName ? `P 名 / 主姓名完整（${project.fields.name.trim()}）` : '正面主姓名/P 名为空，请回到编辑器补充后再输出印刷稿',
     canAutoFix: false,
+    fixTarget: hasName ? undefined : { mode: 'form', target: 'name', side: 'front' },
   });
 
   // 8. K100 单色黑保护
@@ -252,4 +263,22 @@ export function estimateExportSize(project: CardProject, exp: ExportOptions): st
   const standeeBytes = project.standee?.enabled ? (project.standee.dataUrl?.length || 0) * 0.75 : 0;
   const totalBytes = pxW * pxH * (exp.color === 'cmyk' ? 4 : 3) * factors[exp.format] * sides + standeeBytes;
   return `约 ${Math.max(0.1, totalBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function buildPrintSpecText(project: CardProject, template: CardTemplate, exp: ExportOptions): string {
+  const dims = getCardDims(project);
+  return [
+    '=== 一番星 ICHIBANBOSHI · 印刷规格工艺单 ===',
+    `方案名称：${project.title}`,
+    `模板原型：${template.name} (${template.id})`,
+    `成品尺寸：${dims.w} × ${dims.h} mm（含四边出血 ${exp.bleed}mm：${dims.w + 2 * exp.bleed} × ${dims.h + 2 * exp.bleed} mm）`,
+    `圆角模切：${project.cornerMm > 0 ? `${project.cornerMm} mm 圆角` : '直角直切'}`,
+    `面数设定：${project.sides === 2 && exp.doubleSided ? '双面彩印' : '单面印刷'}`,
+    `正面纸基：${project.frontPaper || project.paper}`,
+    `背面纸基：${project.backPaper || project.paper}`,
+    `色彩模式：${exp.color.toUpperCase()} · ${exp.dpi} DPI`,
+    `文字处理：${exp.textMode === 'outline' ? '全部文字转曲' : '内嵌开源字体子集'}`,
+    `专色通道：${exp.spot ? '已分离输出 K100 工艺制版版面' : '无'}`,
+    `导出时间：${new Date().toISOString()}`,
+  ].join('\n');
 }

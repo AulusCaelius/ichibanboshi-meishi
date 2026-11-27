@@ -55,18 +55,25 @@ export function sanitizeCardProject(raw: unknown): CardProject | null {
   const r = raw as Partial<CardProject>;
   if (!r.id || !r.tplId) return null;
   const now = new Date().toISOString();
+  const basePaper = r.paper || 'matte';
+  const cornerMm = r.cornerMm === 5 || r.cornerMm === 3 || r.cornerMm === 0 ? r.cornerMm : r.rounded ? 3 : 0;
   return {
     id: String(r.id),
-    title: String(r.title || '未命名名刺'),
+    title: String(r.title || '制作人Producer_名刺方案'),
     tplId: String(r.tplId),
     orient: r.orient === 'v' || r.orient === 's' ? r.orient : 'h',
+    sides: r.sides === 1 ? 1 : 2,
     spec: r.spec || 'cn',
     color: r.color || '#FF7600',
-    accent: r.accent || '#FFF1E6',
+    accent: r.accent || '#FFF7EC',
     bgDark: Boolean(r.bgDark),
-    paper: r.paper || 'matte',
+    paper: basePaper,
+    frontPaper: r.frontPaper || basePaper,
+    backPaper: r.backPaper || basePaper,
     craft: r.craft || 'none',
-    rounded: r.rounded !== false,
+    rounded: cornerMm > 0,
+    cornerMm,
+    showQr: r.showQr !== false,
     side: r.side === 'back' ? 'back' : 'front',
     fields: { ...DEFAULT_CARD_FIELDS, ...(r.fields || {}) },
     standee: { ...DEFAULT_STANDEE_CONFIG, ...(r.standee || {}) },
@@ -75,6 +82,25 @@ export function sanitizeCardProject(raw: unknown): CardProject | null {
       ...(r.regionCrafts || {}),
     },
     customElements: Array.isArray(r.customElements) ? r.customElements : [],
+    h5: {
+      bio: r.h5?.bio ?? '欢迎在同好聚会 / Live 现场交换制作人名刺！',
+      layout: r.h5?.layout === 'poster' || r.h5?.layout === 'list' ? r.h5.layout : 'card',
+      slug: r.h5?.slug || 'hatsuboshi-p',
+      showSns: {
+        x: r.h5?.showSns?.x ?? true,
+        weibo: r.h5?.showSns?.weibo ?? true,
+        bilibili: r.h5?.showSns?.bilibili ?? true,
+        xhs: r.h5?.showSns?.xhs ?? true,
+        website: r.h5?.showSns?.website ?? true,
+      },
+    },
+    stats: {
+      pv: typeof r.stats?.pv === 'number' ? r.stats.pv : 128,
+      saves: typeof r.stats?.saves === 'number' ? r.stats.saves : 24,
+      trend: Array.isArray(r.stats?.trend) && r.stats.trend.length === 7
+        ? r.stats.trend
+        : [8, 12, 19, 15, 22, 24, 28],
+    },
     createdAt: r.createdAt || now,
     updatedAt: r.updatedAt || now,
   };
@@ -92,8 +118,10 @@ export function sanitizeCustomTemplate(raw: unknown): CardTemplate | null {
     style: r.style || 'modern',
     orient: r.orient === 'v' || r.orient === 's' ? r.orient : 'h',
     layout: String(r.layout || 'clean'),
+    sides: r.sides === 1 ? 1 : 2,
+    badge: r.badge,
     color: r.color || '#FF7600',
-    accent: r.accent || '#FFF1E6',
+    accent: r.accent || '#FFF7EC',
     bgDark: Boolean(r.bgDark),
     paper: r.paper || 'matte',
     craft: r.craft || 'none',
@@ -165,7 +193,6 @@ export function parseImportedJson(rawText: string): ParsedImportPayload {
     return { kind: 'template', template };
   }
 
-  // Fallback heuristic if raw CardProject or CardTemplate object was pasted/exported directly
   const asCard = sanitizeCardProject(obj);
   if (asCard && obj.fields) return { kind: 'card', card: asCard };
 

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { getCardDims } from '../stores/useStudioStore';
 import type { CardProject, CardTemplate, PaperStockId, RenderEnvId, SurfaceCraftId } from '../types/card';
-import { renderCardFaceHtml, resolveCardBgHex } from './renderCardHtml';
+import { getEffectiveSidePaper, renderCardFaceHtml, resolveCardBgHex } from './renderCardHtml';
 
 interface PaperPreset {
   roughness: number;
@@ -371,6 +371,7 @@ export interface Preview3DController {
   setLight: (deg: number) => void;
   setAutoRotate: (enabled: boolean) => void;
   setEnv: (env: RenderEnvId) => void;
+  setPaused: (paused: boolean) => void;
   destroy: () => void;
 }
 
@@ -378,7 +379,7 @@ export function mountPreview3D(
   container: HTMLElement,
   initialProject: CardProject,
   initialTemplate: CardTemplate,
-  opts: { env?: RenderEnvId; autoRotate?: boolean } = {},
+  opts: { env?: RenderEnvId; autoRotate?: boolean; compact?: boolean } = {},
 ): Preview3DController {
   let curProject = initialProject;
   let curTemplate = initialTemplate;
@@ -386,7 +387,7 @@ export function mountPreview3D(
   if (!isWebGLAvailable()) {
     container.dataset.engine = 'fallback-2d';
     const render2D = (side: 'front' | 'back' = 'front') => {
-      container.innerHTML = `<div class="p-4 flex items-center justify-center h-full">${renderCardFaceHtml(curProject, curTemplate, side)}</div>`;
+      container.innerHTML = `<div class="p-3 flex items-center justify-center h-full">${renderCardFaceHtml(curProject, curTemplate, side)}</div>`;
     };
     render2D('front');
     return {
@@ -401,6 +402,7 @@ export function mountPreview3D(
       setLight() {},
       setAutoRotate() {},
       setEnv() {},
+      setPaused() {},
       destroy() {
         container.innerHTML = '';
       },
@@ -418,6 +420,7 @@ export function mountPreview3D(
       setLight() {},
       setAutoRotate() {},
       setEnv() {},
+      setPaused() {},
       destroy() {},
     };
   }
@@ -425,8 +428,8 @@ export function mountPreview3D(
   container.dataset.engine = 'webgl';
   container.innerHTML = '';
 
-  const width = Math.max(container.clientWidth || 720, 200);
-  const height = Math.max(container.clientHeight || 440, 160);
+  const width = Math.max(container.clientWidth || (opts.compact ? 268 : 720), 180);
+  const height = Math.max(container.clientHeight || (opts.compact ? 190 : 440), 140);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -449,7 +452,7 @@ export function mountPreview3D(
   scene.environment = envRT.texture;
 
   const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 40);
-  const defaultDist = 4.35;
+  const defaultDist = opts.compact ? 4.75 : 4.35;
   let targetDist = defaultDist;
   let curDist = defaultDist;
   camera.position.set(0, 0.12, curDist);
@@ -607,6 +610,7 @@ export function mountPreview3D(
   let envMode: RenderEnvId = opts.env || 'studio';
   let lightDeg = 120;
   let autoRotate = Boolean(opts.autoRotate);
+  let paused = false;
   let targetRotX = -0.14;
   let targetRotY = 0.32;
   let curRotX = targetRotX;
@@ -671,47 +675,49 @@ export function mountPreview3D(
 
   function syncGeometry() {
     const dims = getCardDims(curProject);
-    const stockId = curProject.paper;
-    const preset = MAT_PRESETS[stockId] || MAT_PRESETS.matte;
+    const frontStock = getEffectiveSidePaper(curProject, 'front');
+    const backStock = getEffectiveSidePaper(curProject, 'back');
+    const frontPreset = MAT_PRESETS[frontStock] || MAT_PRESETS.matte;
+    const backPreset = MAT_PRESETS[backStock] || MAT_PRESETS.matte;
     const activeSet = collectActiveCrafts(curProject);
-    const cornerMm = curProject.rounded ? 3 : 0.35;
+    const cornerMm = curProject.cornerMm || (curProject.rounded ? 3 : 0);
     const hasRelief = activeSet.has('emboss') || activeSet.has('deboss');
-    const nextKey = `${dims.w}x${dims.h}|${cornerMm}|${stockId}|${hasRelief ? 1 : 0}`;
+    const nextKey = `${dims.w}x${dims.h}|${cornerMm}|${frontStock}|${backStock}|${hasRelief ? 1 : 0}`;
 
-    if (activeSet.has('gold') && stockId !== 'black' && stockId !== 'pvc') {
+    if (activeSet.has('gold') && frontStock !== 'black' && frontStock !== 'pvc') {
       edgeMaterial.color.setHex(0xc99e32);
       edgeMaterial.metalness = 0.78;
       edgeMaterial.roughness = 0.38;
       edgeMaterial.transparent = false;
       edgeMaterial.opacity = 1;
-    } else if (activeSet.has('silver') && stockId !== 'black' && stockId !== 'pvc') {
+    } else if (activeSet.has('silver') && frontStock !== 'black' && frontStock !== 'pvc') {
       edgeMaterial.color.setHex(0xaeb6c2);
       edgeMaterial.metalness = 0.78;
       edgeMaterial.roughness = 0.36;
       edgeMaterial.transparent = false;
       edgeMaterial.opacity = 1;
-    } else if (activeSet.has('copper') && stockId !== 'black' && stockId !== 'pvc') {
+    } else if (activeSet.has('copper') && frontStock !== 'black' && frontStock !== 'pvc') {
       edgeMaterial.color.setHex(0xb86b43);
       edgeMaterial.metalness = 0.76;
       edgeMaterial.roughness = 0.4;
       edgeMaterial.transparent = false;
       edgeMaterial.opacity = 1;
-    } else if (stockId === 'pvc') {
+    } else if (frontStock === 'pvc') {
       edgeMaterial.color.setHex(0xdff6ff);
       edgeMaterial.metalness = 0.0;
       edgeMaterial.roughness = 0.56;
       edgeMaterial.transparent = true;
       edgeMaterial.opacity = 0.58;
     } else {
-      edgeMaterial.color.setHex(preset.edgeColor);
+      edgeMaterial.color.setHex(frontPreset.edgeColor);
       edgeMaterial.metalness = 0.0;
-      edgeMaterial.roughness = preset.roughness;
+      edgeMaterial.roughness = frontPreset.roughness;
       edgeMaterial.transparent = false;
       edgeMaterial.opacity = 1;
     }
     edgeMaterial.needsUpdate = true;
 
-    [frontMaterial, backMaterial].forEach((mat) => {
+    const syncMat = (mat: THREE.MeshStandardMaterial, preset: PaperPreset) => {
       if (mat.transparent !== preset.transparent) {
         mat.transparent = preset.transparent;
         mat.needsUpdate = true;
@@ -722,7 +728,9 @@ export function mountPreview3D(
         (hasRelief ? 0.018 : 0) +
         (activeSet.has('uv') ? 0.005 : 0);
       mat.envMapIntensity = preset.envIntensity;
-    });
+    };
+    syncMat(frontMaterial, frontPreset);
+    syncMat(backMaterial, backPreset);
 
     if (geoKey === nextKey && coreMesh) return;
     geoKey = nextKey;
@@ -737,8 +745,9 @@ export function mountPreview3D(
     const worldScale = 3.05 / Math.max(dims.w, dims.h);
     const w = dims.w * worldScale;
     const h = dims.h * worldScale;
-    const r = cornerMm * worldScale;
-    const coreDepth = preset.depth + (hasRelief ? 0.006 : 0);
+    const effCornerMm = cornerMm > 0 ? cornerMm : 0.35;
+    const r = effCornerMm * worldScale;
+    const coreDepth = Math.max(frontPreset.depth, backPreset.depth) + (hasRelief ? 0.006 : 0);
     const bevelT = coreDepth * 0.16;
     const bevelS = coreDepth * 0.14;
 
@@ -768,7 +777,7 @@ export function mountPreview3D(
 
   async function renderSideTextures(side: 'front' | 'back', res: SideResources, seq: number) {
     const dims = getCardDims(curProject);
-    const matId = curProject.paper;
+    const matId = getEffectiveSidePaper(curProject, side);
     const activeSet = collectActiveCrafts(curProject);
     const cw = 1024;
     const ch = Math.max(420, Math.round((cw * dims.h) / dims.w));
@@ -786,6 +795,14 @@ export function mountPreview3D(
         cv.width = pw;
         cv.height = ph;
       });
+    }
+
+    if (side === 'back' && curProject.sides === 1) {
+      res.colorCtx.fillStyle = resolveCardBgHex(curProject, 'back');
+      res.colorCtx.fillRect(0, 0, cw, ch);
+      res.colorTex.needsUpdate = true;
+      synthesizePbrChannels(res, matId, null);
+      return;
     }
 
     const html = renderCardFaceHtml(curProject, curTemplate, side);
@@ -814,13 +831,14 @@ export function mountPreview3D(
       res.colorCtx.getImageData(0, 0, 1, 1);
     } catch {
       if (seq !== updateSeq) return;
-      res.colorCtx.fillStyle = resolveCardBgHex(curProject);
+      res.colorCtx.fillStyle = resolveCardBgHex(curProject, side);
       res.colorCtx.fillRect(0, 0, cw, ch);
-      res.colorCtx.fillStyle = curProject.bgDark ? '#F8FAFC' : '#0F172A';
+      res.colorCtx.fillStyle = curProject.bgDark ? '#F8FAFC' : '#333333';
       res.colorCtx.font = 'bold 48px "Noto Sans SC", sans-serif';
-      res.colorCtx.fillText(curProject.fields.name || 'Creator', 64, 140);
+      res.colorCtx.fillText(curProject.fields.name || '制作人Producer', 64, 140);
     }
     res.colorTex.needsUpdate = true;
+    renderer.render(scene, camera);
 
     let maskData: Uint8ClampedArray | null = null;
     if (activeSet.size > 0) {
@@ -847,6 +865,7 @@ export function mountPreview3D(
     }
 
     synthesizePbrChannels(res, matId, maskData);
+    renderer.render(scene, camera);
   }
 
   function refresh() {
@@ -883,6 +902,7 @@ export function mountPreview3D(
     targetDist = defaultDist;
   };
   const onWheel = (e: WheelEvent) => {
+    if (opts.compact) return;
     e.preventDefault();
     targetDist = Math.max(2.2, Math.min(6.4, targetDist + e.deltaY * 0.003));
   };
@@ -891,7 +911,9 @@ export function mountPreview3D(
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
   renderer.domElement.addEventListener('dblclick', onDblClick);
-  renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+  if (!opts.compact) {
+    renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+  }
 
   const syncSize = () => {
     const w = container.clientWidth;
@@ -907,6 +929,7 @@ export function mountPreview3D(
 
   const tick = () => {
     rafId = window.requestAnimationFrame(tick);
+    if (paused) return;
     if (autoRotate && !dragging) targetRotY += 0.0075;
     curRotX += (targetRotX - curRotX) * 0.14;
     curRotY += (targetRotY - curRotY) * 0.14;
@@ -959,6 +982,9 @@ export function mountPreview3D(
       envMode = nextEnv;
       applyEnvVisuals();
     },
+    setPaused(nextPaused) {
+      paused = Boolean(nextPaused);
+    },
     destroy() {
       if (rafId) window.cancelAnimationFrame(rafId);
       resizeObs?.disconnect();
@@ -966,7 +992,7 @@ export function mountPreview3D(
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       renderer.domElement.removeEventListener('dblclick', onDblClick);
-      renderer.domElement.removeEventListener('wheel', onWheel);
+      if (!opts.compact) renderer.domElement.removeEventListener('wheel', onWheel);
       [frontRes, backRes].forEach((r) => {
         r.colorTex.dispose();
         r.ormTex.dispose();

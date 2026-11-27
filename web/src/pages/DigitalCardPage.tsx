@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, Copy, FlipHorizontal2, Sparkles, UserPlus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Check, Copy, CreditCard, Sparkles, UserPlus } from 'lucide-react';
 import { CardFaceView } from '../components/CardFaceView';
 import { decodeSharePayload } from '../engines/shareCodec';
 import { useStudioStore } from '../stores/useStudioStore';
@@ -9,7 +9,14 @@ import { useToastStore } from '../stores/useToastStore';
 export function DigitalCardPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { activeProject, getTemplate, selectTemplate } = useStudioStore();
+  const {
+    activeProject,
+    works,
+    getTemplate,
+    selectTemplate,
+    recordCardVisit,
+    recordCardSave,
+  } = useStudioStore();
   const { showToast } = useToastStore();
 
   const decoded = useMemo(() => {
@@ -17,10 +24,19 @@ export function DigitalCardPage() {
     return d ? decodeSharePayload(d) : null;
   }, [searchParams]);
 
-  const card = decoded || activeProject;
+  const slugParam = searchParams.get('slug');
+  const matchedWork = slugParam ? works.find((w) => w.h5.slug === slugParam) : undefined;
+  const card = decoded || matchedWork || activeProject;
   const tpl = getTemplate(card.tplId);
-  const [side, setSide] = useState<'front' | 'back'>('front');
+
+  const [showPhysicalModal, setShowPhysicalModal] = useState(false);
   const [copiedKey, setCopiedKey] = useState('');
+
+  useEffect(() => {
+    recordCardVisit(slugParam || card.id);
+    // Count visit once on mount per URL target
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slugParam]);
 
   const handleCopy = async (label: string, val: string) => {
     try {
@@ -51,100 +67,178 @@ export function DigitalCardPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${f.name || 'contact'}.vcf`;
+    const safeName = (f.name || 'producer')
+      .replace(/[^\p{L}\p{N}_-]+/gu, '_')
+      .replace(/^_+|_+$/g, '');
+    a.download = `${safeName || 'producer'}-meishi.vcf`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('已下载 vCard 通讯录文件', 'success');
+    recordCardSave(slugParam || card.id);
+    showToast('已保存联系人 .vcf 并同步统计 ✦', 'success');
   };
 
   const handles = [
-    { label: 'X / Twitter', val: card.fields.x },
-    { label: 'B站主页', val: card.fields.bilibili },
-    { label: '微博', val: card.fields.weibo },
-    { label: '小红书 / 作品集', val: card.fields.xhs },
-    { label: '个人网址', val: card.fields.website },
-  ].filter((h) => Boolean(h.val));
+    { key: 'x', label: 'X / Twitter', val: card.fields.x },
+    { key: 'weibo', label: '微博', val: card.fields.weibo },
+    { key: 'bilibili', label: 'B站 UID', val: card.fields.bilibili },
+    { key: 'xhs', label: '小红书', val: card.fields.xhs },
+    { key: 'website', label: '个人网址', val: card.fields.website },
+  ].filter(
+    (h) =>
+      Boolean(h.val) &&
+      card.h5.showSns[h.key as keyof typeof card.h5.showSns] !== false,
+  );
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8 space-y-6">
-      <div className="bg-white border border-slate-200 leaf-card p-6 shadow-sm space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF7600]">
-              ICHIBANBOSHI DIGITAL CARD
-            </span>
-            <h1 className="text-xl font-black text-slate-900 mt-0.5">{card.fields.name}</h1>
-            <p className="text-xs text-slate-500">
-              {card.fields.title} · {card.fields.company}
-            </p>
-          </div>
+    <div className="min-h-screen bg-[#F0F0F0] relative flex flex-col">
+      <div
+        className="fixed inset-0 pointer-events-none opacity-20"
+        style={{
+          background:
+            'radial-gradient(circle at 25% 18%, #FF7600 0%, transparent 52%), radial-gradient(circle at 80% 78%, #F39800 0%, transparent 48%)',
+        }}
+      />
+
+      <header className="relative z-10 h-[60px] px-6 bg-white/90 backdrop-blur border-b border-[#E9E9E7] flex items-center justify-between gap-3">
+        <Link to="/" className="text-base font-bold text-[#333333] flex items-center gap-2">
+          <span>一番星 <i className="not-italic text-[#FF7600]">✦</i></span>
+          <span className="text-[11px] font-semibold tracking-[0.16em] text-[#D95F00]">
+            H5 MEISHI
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
-            onClick={() => setSide(side === 'front' ? 'back' : 'front')}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer"
+            onClick={() => setShowPhysicalModal(true)}
+            className="h-9 px-3.5 rounded-[0_12px_0_12px] border border-[#E9E9E7] bg-white text-xs font-bold text-[#333333] hover:border-[#F39800] inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <FlipHorizontal2 className="w-3.5 h-3.5 text-[#FF7600]" />
-            翻面
+            <CreditCard className="w-3.5 h-3.5 text-[#FF7600]" />
+            查看实体名刺
           </button>
-        </div>
 
-        <div className="flex justify-center bg-slate-50 rounded-2xl p-4 border border-slate-100">
-          <div className={card.orient === 'v' ? 'w-56' : card.orient === 's' ? 'w-64' : 'w-full'}>
-            <CardFaceView project={card} template={tpl} side={side} />
-          </div>
-        </div>
-
-        {card.fields.motto && (
-          <blockquote className="text-xs italic text-slate-600 bg-orange-50/60 border-l-2 border-[#FF7600] px-3 py-2 rounded-r-lg">
-            “{card.fields.motto}”
-          </blockquote>
-        )}
-
-        <div className="space-y-2">
-          {handles.map((h) => (
-            <button
-              key={h.label}
-              type="button"
-              onClick={() => void handleCopy(h.label, h.val)}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-200 hover:border-[#FF7600] bg-white text-left text-xs cursor-pointer transition"
-            >
-              <div>
-                <span className="font-bold text-slate-500 mr-2">{h.label}</span>
-                <span className="font-semibold text-slate-900">{h.val}</span>
-              </div>
-              {copiedKey === h.label ? (
-                <Check className="w-4 h-4 text-emerald-600" />
-              ) : (
-                <Copy className="w-3.5 h-3.5 text-slate-400" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <button
-            type="button"
-            onClick={handleDownloadVcf}
-            className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            存入通讯录 (.vcf)
-          </button>
           <button
             type="button"
             onClick={() => {
               selectTemplate(tpl.id);
               navigate('/editor');
             }}
-            className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl btn-brand text-xs font-bold cursor-pointer"
+            className="h-9 px-4 rounded-[0_12px_0_12px] bg-gradient-to-r from-[#FF7600] to-[#F39800] text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
-            使用同款模板制作
+            <Sparkles className="w-3.5 h-3.5" />
+            我也要制作 ✦
           </button>
         </div>
-      </div>
+      </header>
+
+      <section className="relative z-10 flex-1 py-8 px-4 flex flex-col items-center justify-center gap-4">
+        <div className="w-[min(410px,100%)] rounded-[0_32px_0_32px] overflow-hidden bg-white border border-[#FF7600]/20 shadow-xl flex flex-col">
+          <div
+            className={`text-white p-7 ${
+              card.h5.layout === 'poster'
+                ? 'text-left rounded-br-[36px] pt-10'
+                : card.h5.layout === 'list'
+                  ? 'flex items-center gap-4 text-left py-5'
+                  : 'text-center pt-9'
+            }`}
+            style={{ background: `linear-gradient(135deg, ${card.color}, #F39800)` }}
+          >
+            <div className="w-20 h-20 rounded-full border-[3px] border-white/90 bg-white/20 flex items-center justify-center text-3xl font-bold mx-auto overflow-hidden shadow-lg shrink-0">
+              {card.standee.enabled && card.standee.dataUrl ? (
+                <img src={card.standee.dataUrl} alt="artwork" className="w-full h-full object-cover" />
+              ) : (
+                <span>{(card.fields.name || 'P').slice(0, 1)}</span>
+              )}
+            </div>
+            <div>
+              <h1 className="text-[22px] font-bold mt-2.5">{card.fields.name}</h1>
+              {card.fields.enName && (
+                <div className="text-xs opacity-85 uppercase tracking-[0.14em]" style={{ fontFamily: 'var(--font-display-en)' }}>
+                  {card.fields.enName}
+                </div>
+              )}
+              {card.fields.title && (
+                <span className="inline-block mt-2.5 px-3.5 py-1 rounded-full bg-white/25 text-xs font-bold">
+                  {card.fields.title}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 flex-1 flex flex-col gap-4">
+            <div className="text-center text-sm font-semibold text-[#535353]">{card.fields.company}</div>
+
+            {card.h5.bio && (
+              <div className="p-3.5 rounded-[0_16px_0_16px] bg-[#F0F0F0] text-xs text-[#333333] leading-relaxed">
+                {card.h5.bio}
+              </div>
+            )}
+
+            {card.fields.motto && (
+              <div className="px-3.5 py-2.5 rounded-xl bg-[#FFF7EC] text-[#D95F00] text-xs font-semibold">
+                ♪ {card.fields.motto}
+              </div>
+            )}
+
+            <div className={`grid gap-2.5 ${card.h5.layout === 'list' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {handles.map((h) => (
+                <button
+                  key={h.key}
+                  type="button"
+                  onClick={() => void handleCopy(h.label, h.val)}
+                  className="p-3 rounded-[0_14px_0_14px] border border-[#E9E9E7] hover:border-[#FF7600] hover:bg-[#FFF7EC] text-left cursor-pointer transition flex items-center justify-between gap-2"
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#333333]">{h.label}</div>
+                    <div className="text-[11px] text-[#535353] truncate">{h.val}</div>
+                  </div>
+                  {copiedKey === h.label ? (
+                    <Check className="w-3.5 h-3.5 text-[#008969] shrink-0" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 text-[#BFBFBF] shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <button type="button" onClick={handleDownloadVcf} className="btn-cta w-full mt-2">
+              <UserPlus className="w-4 h-4" />
+              交换名刺 · 保存联系人 (.vcf)
+            </button>
+          </div>
+        </div>
+
+        <div className="px-4 py-2 rounded-full bg-white/90 border border-[#FF7600]/25 text-xs font-semibold text-[#D95F00]">
+          ✦ 访问 PV：{card.stats.pv} · 通讯录保存：{card.stats.saves}
+        </div>
+      </section>
+
+      {/* 实体正反面对照浮层 */}
+      {showPhysicalModal && (
+        <div className="auth-modal is-open" role="dialog" aria-modal="true" aria-label="实体名刺对照预览">
+          <div className="auth-modal__dialog !w-[min(760px,100%)]">
+            <div className="auth-modal__head">
+              <div>
+                <div className="auth-modal__eyebrow">✦ PHYSICAL CARD对照</div>
+                <h2 className="auth-modal__title">实体名刺正反对照预览</h2>
+              </div>
+              <button type="button" onClick={() => setShowPhysicalModal(false)} className="auth-modal__close cursor-pointer">×</button>
+            </div>
+            <div className="stage-backdrop rounded-[0_20px_0_20px] p-6 grid sm:grid-cols-2 gap-6">
+              <div>
+                <div className="text-center text-xs font-bold text-[#535353] mb-2">正面</div>
+                <CardFaceView project={card} template={tpl} side="front" />
+              </div>
+              <div>
+                <div className="text-center text-xs font-bold text-[#535353] mb-2">背面</div>
+                <CardFaceView project={card} template={tpl} side="back" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

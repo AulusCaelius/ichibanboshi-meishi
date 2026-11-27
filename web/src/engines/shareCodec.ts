@@ -18,15 +18,20 @@ function fromBase64Url(str: string): Uint8Array {
 
 export function encodeSharePayload(project: CardProject): string {
   const f = project.fields;
+  const h = project.h5;
   const compact = {
     v: 2,
     t: project.tplId,
     o: project.orient,
+    sd: project.sides,
     sp: project.spec,
+    cm: project.cornerMm,
     c: project.color,
     ac: project.accent,
     dk: project.bgDark ? 1 : 0,
     p: project.paper,
+    fp: project.frontPaper,
+    bp: project.backPaper,
     cr: project.craft,
     rc: project.regionCrafts,
     f: {
@@ -44,6 +49,12 @@ export function encodeSharePayload(project: CardProject): string {
       mt: f.motto,
       bt: f.backTitle,
     },
+    h: {
+      b: h.bio,
+      l: h.layout,
+      sl: h.slug,
+      sh: h.showSns,
+    },
   };
   return toBase64Url(new TextEncoder().encode(JSON.stringify(compact)));
 }
@@ -56,15 +67,21 @@ export function decodeSharePayload(encoded: string): CardProject | null {
     const tpl = SYSTEM_TEMPLATES.find((x) => x.id === json.t) || SYSTEM_TEMPLATES[0];
     const base = createProjectFromTemplate(tpl);
     const f = json.f || {};
+    const h = json.h || {};
     return {
       ...base,
-      id: 'shared_card',
+      id: `shared_${h.sl || 'card'}`,
       orient: json.o || base.orient,
+      sides: json.sd === 1 ? 1 : 2,
       spec: json.sp || base.spec,
+      cornerMm: json.cm === 5 || json.cm === 3 ? json.cm : 0,
+      rounded: Boolean(json.cm),
       color: json.c || base.color,
       accent: json.ac || base.accent,
       bgDark: Boolean(json.dk),
       paper: json.p || base.paper,
+      frontPaper: json.fp || json.p || base.paper,
+      backPaper: json.bp || json.p || base.paper,
       craft: json.cr || base.craft,
       regionCrafts: json.rc ? { ...base.regionCrafts, ...json.rc } : base.regionCrafts,
       fields: {
@@ -81,8 +98,14 @@ export function decodeSharePayload(encoded: string): CardProject | null {
         xhs: f.xh || '',
         website: f.ws || '',
         motto: f.mt || '',
-        backTitle: f.bt || 'CONNECT',
+        backTitle: f.bt || 'PRODUCER CARD',
         qrUrl: '',
+      },
+      h5: {
+        bio: h.b || base.h5.bio,
+        layout: h.l === 'poster' || h.l === 'list' ? h.l : 'card',
+        slug: h.sl || 'hatsuboshi-p',
+        showSns: h.sh ? { ...base.h5.showSns, ...h.sh } : base.h5.showSns,
       },
     };
   } catch {
@@ -103,5 +126,5 @@ export function buildCardShareUrl(project: CardProject, originHint?: string): st
     typeof window !== 'undefined' && window.location ? window.location.pathname : '/ichibanboshi-meishi/';
   const cleanPath = pathname.endsWith('/') ? pathname : `${pathname}/`;
   const payload = encodeSharePayload(project);
-  return `${origin}${cleanPath}#/card?d=${payload}`;
+  return `${origin}${cleanPath}#/card?slug=${encodeURIComponent(project.h5?.slug || 'hatsuboshi-p')}&d=${payload}`;
 }

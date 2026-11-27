@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Save, X } from 'lucide-react';
-import { ROLE_PRESETS } from '../data/templates';
+import { COMPANY_PRESETS, IDOL_PRESETS } from '../data/templates';
 import { useStudioStore } from '../stores/useStudioStore';
 import { useToastStore } from '../stores/useToastStore';
 import type { CreatorProfile } from '../types/card';
@@ -11,7 +10,7 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ open, onClose }: ProfileModalProps) {
-  const { profile, saveProfile, applyProfileToActive } = useStudioStore();
+  const { profile, saveProfile, applyProfileToActive, setPrefill } = useStudioStore();
   const { showToast } = useToastStore();
   const [form, setForm] = useState<CreatorProfile>(profile);
 
@@ -23,135 +22,167 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
   const handleSave = (applyNow: boolean) => {
     saveProfile(form);
+    setPrefill({
+      name: form.nickname,
+      title: form.roleTitle,
+      company: form.studioName,
+      accentColor: form.tantouColor || '#FF7600',
+    });
     if (applyNow) applyProfileToActive();
     showToast(
-      applyNow ? '创作者默认资料已保存并同步至当前名片' : '创作者默认资料已保存至本地',
+      applyNow ? '制作人资料已保存，并已应用到当前名刺 ✦' : '制作人默认名籍已保存至本地 ✦',
       'success',
     );
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg leaf-card border border-slate-200 shadow-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+    <div className="auth-modal is-open" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+      <div className="auth-modal__dialog max-h-[90vh] overflow-y-auto">
+        <div className="auth-modal__head">
           <div>
-            <h2 className="text-lg font-black text-slate-900">本地创作者预设资料</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              切换任意通用模板时自动带入您的个人名刺常用信息（仅存本地）
-            </p>
+            <div className="auth-modal__eyebrow">✦ PRODUCER PROFILE</div>
+            <h2 id="profileModalTitle" className="auth-modal__title">制作人身份名籍（纯本地）</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer"
-            aria-label="关闭弹窗"
+            className="auth-modal__close cursor-pointer"
+            aria-label="关闭窗口"
           >
-            <X className="w-5 h-5" />
+            ×
           </button>
         </div>
 
-        <div className="p-6 space-y-3.5 text-sm">
+        <div className="auth-modal__form">
           <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-xs font-bold text-slate-600">常用姓名 / 昵称</span>
+            <div className="auth-field">
+              <label htmlFor="profName">P 名 / 制作人名称</label>
               <input
+                id="profName"
                 type="text"
+                placeholder="制作人Producer"
                 value={form.nickname}
                 onChange={(e) => setForm({ ...form, nickname: e.target.value })}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
               />
-            </label>
-            <label className="block">
-              <span className="text-xs font-bold text-slate-600">工作室 / 归属</span>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="profCompany">所属事务所 / 工作室</label>
               <input
+                id="profCompany"
                 type="text"
+                placeholder="初星学園 / 765プロダクション"
                 value={form.studioName}
                 onChange={(e) => setForm({ ...form, studioName: e.target.value })}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
               />
-            </label>
+            </div>
           </div>
 
-          <label className="block">
-            <span className="text-xs font-bold text-slate-600">默认创作头衔（可选预设或自由输入）</span>
+          <div className="auth-company-chips">
+            {COMPANY_PRESETS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setForm({ ...form, studioName: c })}
+                className="auth-mini-chip cursor-pointer"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="profRole">职位 / 担当偶像（可点选下方担当色或自由输入）</label>
             <input
+              id="profRole"
               type="text"
+              placeholder="〇〇担当（如：花海咲季担当）"
               value={form.roleTitle}
               onChange={(e) => setForm({ ...form, roleTitle: e.target.value })}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
             />
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {ROLE_PRESETS.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setForm({ ...form, roleTitle: r })}
-                  className="px-2 py-0.5 rounded-full bg-slate-100 hover:bg-orange-50 hover:text-[#FF7600] text-[11px] font-medium text-slate-600 cursor-pointer"
-                >
-                  {r}
-                </button>
-              ))}
+            <div className="auth-idol-grid pt-1">
+              {IDOL_PRESETS.map((idol) => {
+                const active = form.tantou === idol.name || form.roleTitle === `${idol.name}担当`;
+                return (
+                  <button
+                    key={idol.id}
+                    type="button"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        tantou: idol.name,
+                        tantouColor: idol.color,
+                        roleTitle: `${idol.name}担当`,
+                      })
+                    }
+                    className={`auth-idol-chip cursor-pointer ${active ? 'is-active' : ''}`}
+                  >
+                    <span className="auth-idol-chip__dot" style={{ backgroundColor: idol.color }} />
+                    <span>{idol.name}</span>
+                  </button>
+                );
+              })}
             </div>
-          </label>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-xs font-bold text-slate-600">X / Twitter</span>
+            <div className="auth-field">
+              <label htmlFor="profX">X / Twitter</label>
               <input
+                id="profX"
                 type="text"
                 value={form.x}
                 onChange={(e) => setForm({ ...form, x: e.target.value })}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
               />
-            </label>
-            <label className="block">
-              <span className="text-xs font-bold text-slate-600">B站主页 / UID</span>
+            </div>
+            <div className="auth-field">
+              <label htmlFor="profBili">B站 UID</label>
               <input
+                id="profBili"
                 type="text"
                 value={form.bilibili}
                 onChange={(e) => setForm({ ...form, bilibili: e.target.value })}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
               />
-            </label>
+            </div>
           </div>
 
-          <label className="block">
-            <span className="text-xs font-bold text-slate-600">个人网站 / 作品集网址</span>
-            <input
-              type="text"
-              value={form.website}
-              onChange={(e) => setForm({ ...form, website: e.target.value })}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-xs font-bold text-slate-600">默认个性签名</span>
-            <input
-              type="text"
-              value={form.motto}
-              onChange={(e) => setForm({ ...form, motto: e.target.value })}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-[#FF7600]"
-            />
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="auth-field">
+              <label htmlFor="profWeb">个人网站</label>
+              <input
+                id="profWeb"
+                type="text"
+                value={form.website}
+                onChange={(e) => setForm({ ...form, website: e.target.value })}
+              />
+            </div>
+            <div className="auth-field">
+              <label htmlFor="profMotto">喜欢的曲 / Slogan</label>
+              <input
+                id="profMotto"
+                type="text"
+                value={form.motto}
+                onChange={(e) => setForm({ ...form, motto: e.target.value })}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+        <div className="auth-modal__extras justify-end">
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 cursor-pointer"
+            className="btn-outline btn-outline--sm"
           >
             仅保存默认资料
           </button>
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg btn-brand text-xs font-bold cursor-pointer"
+            className="btn-cta btn-cta--sm"
           >
-            <Save className="w-4 h-4" />
-            保存并应用到当前名片
+            保存并应用到当前名片 ✦
           </button>
         </div>
       </div>
