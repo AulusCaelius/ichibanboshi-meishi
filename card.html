@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>制作人电子名刺 · 一番星 ICHIBANBOSHI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&family=Poppins:wght@400;600;700&family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/phygital.css">
+  <link rel="stylesheet" href="assets/css/card-h5.css">
+</head>
+<body class="live-h5-body">
+  <div id="liveAmbientBg" class="live-ambient-bg" aria-hidden="true"></div>
+
+  <header class="live-h5-topbar">
+    <a href="index.html" class="live-brand">一番星 <span>✦ DIGITAL MEISHI</span></a>
+    <div class="live-topbar-actions">
+      <button type="button" id="flipPhysicalBtn" class="live-top-btn">查看实体名刺</button>
+      <a href="works.html" class="live-top-btn live-top-btn--primary">我的作品</a>
+    </div>
+  </header>
+
+  <main class="live-h5-main">
+    <article class="live-phone-shell">
+      <div id="liveH5Mount" class="phone-screen"></div>
+    </article>
+
+    <div id="liveVisitBadge" class="live-visit-badge" aria-live="polite">
+      ✦ 正在加载制作人名刺…
+    </div>
+  </main>
+
+  <div id="physicalFlipModal" class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="physicalModalTitle" aria-hidden="true">
+    <div class="auth-modal__dialog live-physical-dialog">
+      <div class="auth-modal__head">
+        <div>
+          <div class="auth-modal__eyebrow">✦ PHYSICAL MEISHI</div>
+          <h2 id="physicalModalTitle" class="auth-modal__title">实体名刺正反对照</h2>
+        </div>
+        <button type="button" id="physicalCloseBtn" class="auth-modal__close" aria-label="关闭实体名刺窗口">×</button>
+      </div>
+      <div id="physicalCompareMount" class="live-physical-grid"></div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/pages/card-h5.mjs"></script>
+</body>
+</html>

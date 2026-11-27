@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的作品 · 一番星 ICHIBANBOSHI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&family=Poppins:wght@400;600;700&family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css?v=r5">
+  <link rel="stylesheet" href="assets/css/base.css?v=r5">
+  <link rel="stylesheet" href="assets/css/works.css?v=r5">
+</head>
+<body>
+  <!-- 全局固定 Header -->
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a href="index.html" class="brand-logo" aria-label="一番星 首页">
+        <span class="brand-logo__main">一番星 <i class="brand-logo__star" aria-hidden="true">✦</i></span>
+        <span class="brand-logo__sub">ICHIBANBOSHI</span>
+      </a>
+
+      <nav class="site-nav" aria-label="主导航">
+        <a href="templates.html" class="nav-link">
+          <span class="nav-link__zh">模板库</span>
+          <span class="nav-link__en">TEMPLATES</span>
+        </a>
+        <a href="works.html" class="nav-link is-current">
+          <span class="nav-link__zh">我的作品</span>
+          <span class="nav-link__en">WORKS</span>
+        </a>
+        <a href="index.html#features" class="nav-link">
+          <span class="nav-link__zh">功能介绍</span>
+          <span class="nav-link__en">FEATURES</span>
+        </a>
+        <a href="index.html#about" class="nav-link">
+          <span class="nav-link__zh">关于</span>
+          <span class="nav-link__en">ABOUT</span>
+        </a>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="header-login" data-login-btn>登录</button>
+        <a href="templates.html" class="btn-cta btn-cta--sm">+ 新建名刺</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 顶部标题带与汇总统计 -->
+    <section class="works-hero">
+      <div class="bg-text bg-text--stroke works-hero__bg-text" aria-hidden="true">Works</div>
+      <div class="container works-hero__inner">
+        <div>
+          <nav class="breadcrumb" aria-label="面包屑">
+            <a href="index.html">首页</a>
+            <span aria-hidden="true">/</span>
+            <span>我的作品</span>
+          </nav>
+          <h1 class="works-hero__title">我的作品 <span class="works-hero__star" aria-hidden="true">✦</span></h1>
+          <p class="works-hero__sub">集中管理已保存的名刺方案、在线 H5 电子名片短链与印刷工艺配置</p>
+        </div>
+
+        <div class="works-stats-row" aria-label="作品汇总统计">
+          <div class="works-stat-card">
+            <div class="works-stat-card__num" id="worksCountNum">0</div>
+            <div class="works-stat-card__label">已存方案</div>
+          </div>
+          <div class="works-stat-card">
+            <div class="works-stat-card__num" id="worksPvNum">0</div>
+            <div class="works-stat-card__label">H5 累计 PV</div>
+          </div>
+          <div class="works-stat-card">
+            <div class="works-stat-card__num" id="worksSavesNum">0</div>
+            <div class="works-stat-card__label">通讯录保存</div>
+          </div>
+          <button type="button" id="worksIdentityBtn" class="works-identity-card">
+            <span class="works-identity-card__label">制作人名籍</span>
+            <span class="works-identity-card__val" id="worksIdentityVal">点击登录身份 ✦</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 工具条 -->
+    <section class="works-toolbar-wrap" aria-label="作品筛选与排序">
+      <div class="container works-toolbar">
+        <div class="works-search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <label for="worksSearchInput" class="sr-only">搜索名刺方案</label>
+          <input id="worksSearchInput" type="search" placeholder="搜索方案名称 / P 名 / 担当偶像…">
+        </div>
+
+        <div class="works-toolbar__controls">
+          <div class="works-pill-seg" role="group" aria-label="排序方式">
+            <button type="button" class="works-seg-btn is-active" data-sort="recent">最近编辑</button>
+            <button type="button" class="works-seg-btn" data-sort="hot">访问热度</button>
+          </div>
+
+          <div class="works-pill-seg" role="group" aria-label="预览面切换">
+            <button type="button" class="works-seg-btn is-active" data-preview-side="front">正面</button>
+            <button type="button" class="works-seg-btn" data-preview-side="back">反面</button>
+          </div>
+
+          <a href="templates.html" class="btn-outline btn-cta--sm">+ 从模板新建</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 作品网格与空状态 -->
+    <section class="works-list-section">
+      <div class="container">
+        <div id="worksGrid" class="works-grid"></div>
+
+        <div id="worksEmpty" class="works-empty" hidden>
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+            <circle cx="60" cy="60" r="46" stroke="#F39800" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <circle cx="60" cy="60" r="28" stroke="#FF7600" stroke-width="1.5"/>
+            <path d="M60 18L65 55L102 60L65 65L60 102L55 65L18 60L55 55Z" stroke="#FF7600" stroke-width="1.5" fill="rgba(255,118,0,0.08)"/>
+          </svg>
+          <h2>还没有保存的制作人名刺</h2>
+          <p>从模板库挑选一套担当风格，即刻生成你的第一张偶像制作人名刺。</p>
+          <a href="templates.html" class="btn-cta">浏览 128 套偶像模板 ✦</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 重命名模态框 -->
+  <div id="renameModal" class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="renameModalTitle" aria-hidden="true">
+    <div class="auth-modal__dialog" style="width:min(420px,100%);">
+      <div class="auth-modal__head">
+        <div>
+          <div class="auth-modal__eyebrow">✦ RENAME WORK</div>
+          <h2 id="renameModalTitle" class="auth-modal__title">重命名名刺方案</h2>
+        </div>
+        <button type="button" id="renameCloseBtn" class="auth-modal__close" aria-label="关闭重命名窗口">×</button>
+      </div>
+      <form id="renameForm" class="auth-modal__form">
+        <div class="auth-field">
+          <label for="renameInput">新方案名称</label>
+          <input id="renameInput" type="text" maxlength="40" required>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" id="renameCancelBtn" class="btn-outline btn-cta--sm">取消</button>
+          <button type="submit" class="btn-cta btn-cta--sm">确认保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 全局 Footer -->
+  <footer id="about" class="site-footer">
+    <div class="bg-text bg-text--white site-footer__bg-text" aria-hidden="true">ICHIBANBOSHI</div>
+    <div class="container">
+      <div class="site-footer__card">
+        <div>
+          <a href="index.html" class="brand-logo">
+            <span class="brand-logo__main">一番星 <i class="brand-logo__star" aria-hidden="true">✦</i></span>
+            <span class="brand-logo__sub">ICHIBANBOSHI</span>
+          </a>
+          <p class="footer-brand__desc">为偶像游戏玩家、动漫偶像爱好者与地偶制作人打造的专属名刺设计工作台。</p>
+        </div>
+        <div>
+          <h3 class="footer-col__title">产品 <span class="footer-col__en">PRODUCT</span></h3>
+          <ul class="footer-col__list">
+            <li><a href="templates.html" class="footer-col__link">偶像模板库</a></li>
+            <li><a href="works.html" class="footer-col__link">我的作品管理</a></li>
+            <li><a href="editor.html" class="footer-col__link">双模式编辑器</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer-col__title">资源 <span class="footer-col__en">RESOURCES</span></h3>
+          <ul class="footer-col__list">
+            <li><a href="export.html" class="footer-col__link">印前校验与专色导出</a></li>
+            <li><a href="phygital.html" class="footer-col__link">Phygital 数字名片</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="footer-col__title">关于 <span class="footer-col__en">ABOUT</span></h3>
+          <ul class="footer-col__list">
+            <li><a href="index.html#about" class="footer-col__link">项目初衷</a></li>
+            <li><a href="index.html#features" class="footer-col__link">设计亮点</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="site-footer__bottom">
+        <span>© 2026 一番星 ICHIBANBOSHI</span>
+        <span>同人制作 · Fan-made Tool</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/data.js?v=r5"></script>
+  <script src="assets/js/card.js?v=r5"></script>
+  <script src="assets/js/common.js?v=r5"></script>
+  <script src="assets/js/store.js?v=r5"></script>
+  <script src="assets/js/project-render.js?v=r5"></script>
+  <script src="assets/js/works.js?v=r5"></script>
+</body>
+</html>
