@@ -4,3 +4,8 @@ Thumbs.db
 node_modules/
 .idea/
 .vscode/
+app/data/
+app/dist/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

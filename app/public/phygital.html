@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phygital 双栖视图 · 一番星 ICHIBANBOSHI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&family=Poppins:wght@400;600;700&family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/workspace.css">
+  <link rel="stylesheet" href="assets/css/phygital.css">
+</head>
+<body class="ws-body">
+  <header class="ws-topbar">
+    <div class="ws-topbar__left">
+      <a href="editor.html" id="phyBackEditor" class="ws-back-btn" aria-label="返回编辑器">←</a>
+      <div class="ws-breadcrumb">
+        <a href="editor.html">编辑器</a>
+        <span class="ws-breadcrumb__sep">/</span>
+        <span>Phygital 双栖</span>
+      </div>
+      <span id="phySaveStatus" class="ws-save-status"><i class="ws-save-status__star" aria-hidden="true">✦</i> 已自动保存</span>
+    </div>
+
+    <div class="ws-topbar__right">
+      <span class="header-mode-pill" data-mode-pill>连接中…</span>
+      <a href="works.html" id="phyGoWorks" class="ws-nav-btn">我的作品</a>
+      <a href="export.html" id="phyGoExport" class="ws-export-btn">前往导出 →</a>
+    </div>
+  </header>
+
+  <div class="phygital-wrap">
+    <main class="phygital-main">
+      <section class="phy-card" aria-label="实体名片与 H5 配置">
+        <div class="ws-panel-head" style="margin-bottom:0;">
+          <h1 class="ws-panel-title">实体名片联动预览</h1>
+          <div class="ws-side-seg" role="group" aria-label="正反面切换">
+            <button type="button" id="phySideFront" class="ws-side-seg__btn is-active">正面</button>
+            <button type="button" id="phySideBack" class="ws-side-seg__btn">反面</button>
+          </div>
+        </div>
+
+        <div id="phyCardStage" class="phy-card-stage stage-backdrop"></div>
+
+        <div class="ws-panel-head" style="margin-bottom:0;">
+          <h2 class="ws-panel-title">H5 电子名片内容定制</h2>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:4px;">
+            <label for="phyBioInput">制作人简介（选填）</label>
+            <span id="phyBioCount">0 / 60</span>
+          </div>
+          <textarea id="phyBioInput" class="phy-textarea" maxlength="60" placeholder="写一句自我介绍或打招呼，如：主推初星学园全员，欢迎 Live 现场交换名刺！"></textarea>
+        </div>
+
+        <div class="phy-form-grid">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">H5 显示的社交账号</div>
+            <div id="phySnsToggles" style="display:flex;flex-direction:column;gap:4px;"></div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:8px;">H5 页面布局风格</div>
+            <div id="phyLayoutChips" style="display:flex;flex-direction:column;gap:8px;">
+              <button type="button" class="chip is-active" data-h5-layout="card">卡片式（居中学园风）</button>
+              <button type="button" class="chip" data-h5-layout="poster">海报式（左对齐视觉）</button>
+              <button type="button" class="chip" data-h5-layout="list">极简列表（高效名录）</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="phy-sync" aria-hidden="true">
+        <div class="phy-sync__line"></div>
+        <div class="phy-sync__star">✦</div>
+        <div class="phy-sync__text">视觉风格与核心资料已自动映射</div>
+        <div class="phy-sync__line"></div>
+      </div>
+
+      <section class="phy-phone-col" aria-label="H5 手机端预览">
+        <div class="phone-frame-outer">
+          <div id="h5PhoneScreen" class="phone-screen"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="phy-bottom">
+      <div class="phy-bottom__inner">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+            <div class="slug-box" style="flex:1;min-width:200px;">
+              <span id="phyPrefixLabel" class="slug-prefix">/p/</span>
+              <label for="phySlugInput" class="sr-only">短链别名</label>
+              <input id="phySlugInput" class="slug-input" type="text" value="hatsuboshi-p">
+            </div>
+            <button type="button" id="phyCopySlug" class="chip" style="min-height:36px;">复制分享链接</button>
+            <button type="button" id="phyDlQrBtn" class="chip" style="min-height:36px;">下载二维码 SVG</button>
+            <a href="card.html?slug=hatsuboshi-p" target="_blank" rel="noopener" id="phyOpenH5" class="btn-cta btn-cta--sm" style="min-height:36px;padding:0 16px;font-size:13px;">打开 H5 实机页 ↗</a>
+          </div>
+          <p style="font-size:12px;color:var(--orange-700);">二维码内嵌真实分享链接（云端模式直跳短链，静态部署自动携带跨设备完整数据）</p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="phyQrSvg"></div>
+          <span style="font-size:11px;color:var(--gray-600);writing-mode:vertical-rl;">真实二维码</span>
+        </div>
+
+        <div class="phy-stats" aria-label="访问数据统计">
+          <div>
+            <div class="phy-stat-num" id="phyStatPv">0</div>
+            <div class="phy-stat-label">累计访问 PV</div>
+          </div>
+          <div>
+            <div class="phy-stat-num" id="phyStatSaves">0</div>
+            <div class="phy-stat-label">保存通讯录</div>
+          </div>
+          <div>
+            <svg width="110" height="36" viewBox="0 0 110 36" fill="none" aria-label="近7日访问趋势">
+              <polyline id="phyTrendLine" points="4,30 106,30" stroke="#FF7600" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle id="phyTrendDot" cx="106" cy="30" r="3" fill="#FF7600"/>
+            </svg>
+            <div class="phy-stat-label">近 7 日实时趋势</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="assets/js/pages/phygital.mjs"></script>
+</body>
+</html>

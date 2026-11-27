@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑器 · 一番星 ICHIBANBOSHI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&family=Poppins:wght@400;600;700&family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/workspace.css">
+  <link rel="stylesheet" href="assets/css/editor.css">
+</head>
+<body class="ws-body">
+  <header class="ws-topbar">
+    <div class="ws-topbar__left">
+      <a href="templates.html" id="backTemplatesBtn" class="ws-back-btn" aria-label="返回模板库">←</a>
+      <label for="fileNameInput" class="sr-only">方案名称</label>
+      <input id="fileNameInput" class="ws-filename-input" type="text" value="制作人Producer_名刺方案">
+      <button type="button" id="undoBtn" class="ws-icon-btn" aria-label="撤销" title="撤销 (Cmd/Ctrl+Z)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button type="button" id="redoBtn" class="ws-icon-btn" aria-label="重做" title="重做 (Shift+Cmd/Ctrl+Z)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
+      <span id="saveStatus" class="ws-save-status"><i class="ws-save-status__star" aria-hidden="true">✦</i> 已自动保存</span>
+    </div>
+
+    <div class="ws-topbar__center">
+      <div class="ws-seg" role="tablist" aria-label="编辑模式切换">
+        <button type="button" id="modeFormBtn" class="ws-seg__btn is-active" role="tab" aria-selected="true">极简表单</button>
+        <button type="button" id="modeCanvasBtn" class="ws-seg__btn" role="tab" aria-selected="false">自由画布</button>
+      </div>
+    </div>
+
+    <div class="ws-topbar__right">
+      <div class="ws-side-seg" role="group" aria-label="单双面配置">
+        <button type="button" id="sidesDoubleBtn" class="ws-side-seg__btn is-active" title="双面名刺">双面</button>
+        <button type="button" id="sidesSingleBtn" class="ws-side-seg__btn" title="单面名刺">单面</button>
+      </div>
+      <div class="ws-side-seg" role="group" aria-label="正反面切换">
+        <button type="button" id="sideFrontBtn" class="ws-side-seg__btn is-active">正面</button>
+        <button type="button" id="sideBackBtn" class="ws-side-seg__btn">反面</button>
+      </div>
+      <button type="button" id="saveAsTplBtn" class="ws-nav-btn" title="将当前设计存为个人模板">存为模板</button>
+      <a href="works.html" id="goWorksBtn" class="ws-nav-btn">我的作品</a>
+      <a href="phygital.html" id="goPhygitalBtn" class="ws-nav-btn">Phygital 双栖</a>
+      <a href="export.html" id="goExportBtn" class="ws-export-btn">导出 →</a>
+    </div>
+  </header>
+
+  <div class="editor-main">
+    <aside class="editor-left" aria-label="编辑控制面板">
+      <div id="formPanel" class="form-panel">
+        <div id="restoreCanvasBanner" class="ws-restore-banner" hidden>
+          <span>保留着一份自由画布排版草稿</span>
+          <button type="button" id="restoreCanvasBtn" class="ef-chip" style="min-height:24px;font-size:11px;">恢复画布</button>
+        </div>
+
+        <div class="ef-mat-card" aria-label="卡底与装饰区域材质">
+          <div class="ef-mat-card__title">卡底与装饰区域材质</div>
+          <div class="ef-mat-card__grid">
+            <label class="ef-mat-mini">
+              <span>正面卡底</span>
+              <select class="ef-mat-select" data-side-stock="front"></select>
+            </label>
+            <label class="ef-mat-mini">
+              <span>背面卡底</span>
+              <select class="ef-mat-select" data-side-stock="back"></select>
+            </label>
+            <label class="ef-mat-mini">
+              <span>立绘与装饰</span>
+              <select class="ef-mat-select" data-region-mat="decor"></select>
+            </label>
+            <label class="ef-mat-mini">
+              <span>背面主标语</span>
+              <select class="ef-mat-select" data-region-mat="backJp"></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="ef-standee-card" aria-label="表单立绘插画上传与构图">
+          <div class="ef-standee-preview-row">
+            <div id="standeeThumb" class="ef-standee-thumb">星</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:700;margin-bottom:4px;">专属立绘 / 卡面插画</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <label class="ef-chip" style="min-height:26px;font-size:11px;cursor:pointer;">
+                  <input id="standeeUploadInput" type="file" accept="image/*" class="sr-only">
+                  <span>上传立绘</span>
+                </label>
+                <button type="button" id="standeeResetBtn" class="ef-chip" style="min-height:26px;font-size:11px;">恢复偶像徽章</button>
+              </div>
+            </div>
+          </div>
+          <div id="standeeControlsWrap" class="ef-standee-sliders" hidden>
+            <label><span>缩放</span><input id="standeeScaleSlider" type="range" min="0.8" max="2.2" step="0.05" value="1"></label>
+            <label><span>左右</span><input id="standeeOffsetXSlider" type="range" min="-45" max="45" step="1" value="0"></label>
+            <label><span>上下</span><input id="standeeOffsetYSlider" type="range" min="-45" max="45" step="1" value="0"></label>
+          </div>
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efName"><span>P 名（姓名）</span><select class="ef-mat-select" data-region-mat="name" aria-label="P名材质"></select></label>
+          <input id="efName" class="ef-input" type="text" placeholder="制作人Producer">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efEnName"><span>英文名</span><select class="ef-mat-select" data-region-mat="enName" aria-label="英文名材质"></select></label>
+          <input id="efEnName" class="ef-input" type="text" placeholder="PRODUCER NAME（留空自动隐藏）">
+        </div>
+
+        <div class="ef-group combobox-wrap">
+          <label class="ef-label" for="efTitle"><span>担当偶像（〇〇担当）</span><select class="ef-mat-select" data-region-mat="title" aria-label="担当职位材质"></select></label>
+          <input id="efTitle" class="ef-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="efIdolDropdown" placeholder="花海咲季担当" autocomplete="off">
+          <div id="efIdolDropdown" class="combobox-menu" role="listbox"></div>
+        </div>
+
+        <div class="ws-switch-row">
+          <span style="font-size:13px;font-weight:600;">使用担当色点缀</span>
+          <button type="button" id="efUseAccent" class="ws-switch" role="switch" aria-checked="true" aria-label="使用担当色点缀"></button>
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efCompany"><span>所属事务所</span><select class="ef-mat-select" data-region-mat="company" aria-label="所属事务所材质"></select></label>
+          <input id="efCompany" class="ef-input" type="text" placeholder="初星学園">
+          <div class="ef-chips">
+            <button type="button" class="ef-chip" data-ef-company="初星学園">初星学園</button>
+            <button type="button" class="ef-chip" data-ef-company="765プロダクション">765プロダクション</button>
+          </div>
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efPid"><span>游戏 P-ID / 招待码</span><select class="ef-mat-select" data-region-mat="pid" aria-label="游戏P-ID材质"></select></label>
+          <input id="efPid" class="ef-input" type="text" placeholder="如：GAKUEN-7650-1127">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efEventTag"><span>参战活动 / 交换印记</span><select class="ef-mat-select" data-region-mat="eventTag" aria-label="参战活动材质"></select></label>
+          <input id="efEventTag" class="ef-input" type="text" placeholder="如：初星学園 Only / 1st Live">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efX"><span>X (Twitter)</span><select class="ef-mat-select" data-region-mat="x" aria-label="X账号材质"></select></label>
+          <input id="efX" class="ef-input" type="text" placeholder="@hatsuboshi_p">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efWeibo"><span>微博</span><select class="ef-mat-select" data-region-mat="weibo" aria-label="微博材质"></select></label>
+          <input id="efWeibo" class="ef-input" type="text" placeholder="@制作人Producer">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efBilibili"><span>B站 UID</span><select class="ef-mat-select" data-region-mat="bilibili" aria-label="B站UID材质"></select></label>
+          <input id="efBilibili" class="ef-input" type="text" placeholder="UID 12345678">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efXhs"><span>小红书</span><select class="ef-mat-select" data-region-mat="xhs" aria-label="小红书材质"></select></label>
+          <input id="efXhs" class="ef-input" type="text" placeholder="小红书号">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efFavSong"><span>喜欢的曲</span><select class="ef-mat-select" data-region-mat="favSong" aria-label="喜欢的曲材质"></select></label>
+          <input id="efFavSong" class="ef-input" type="text" placeholder="如：Fighting My Way">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efBackTitle"><span>背面主标语</span></label>
+          <input id="efBackTitle" class="ef-input" type="text" placeholder="个人曲 / 应援标语">
+        </div>
+
+        <div class="ef-group">
+          <label class="ef-label" for="efBackSub"><span>背面副文案</span></label>
+          <input id="efBackSub" class="ef-input" type="text" placeholder="工艺说明 / 同担交流提示">
+        </div>
+
+        <div class="ws-switch-row">
+          <span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
+            <span>背面动态二维码</span>
+            <select class="ef-mat-select" data-region-mat="qr" aria-label="二维码材质"></select>
+          </span>
+          <button type="button" id="efQrToggle" class="ws-switch" role="switch" aria-checked="true" aria-label="背面展示动态二维码"></button>
+        </div>
+
+        <div id="efQrModeWrap" class="ef-group">
+          <label class="ef-label" for="efQrMode"><span>二维码扫码目标</span></label>
+          <select id="efQrMode" class="ef-input">
+            <option value="h5">个人 H5 电子名刺（自动携参跨设备可扫）</option>
+            <option value="x">直连 X (Twitter) 主页</option>
+            <option value="custom">自定义链接</option>
+          </select>
+          <input id="efQrCustomUrl" class="ef-input" type="url" placeholder="https://..." hidden>
+        </div>
+      </div>
+
+      <div id="canvasPanel" class="canvas-tools-panel" hidden>
+        <div class="tool-rail" role="tablist" aria-label="画布工具分类">
+          <button type="button" class="tool-rail__btn is-active" data-tool-tab="templates">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>
+            <span>模板</span>
+          </button>
+          <button type="button" class="tool-rail__btn" data-tool-tab="text">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V4h16v3M12 4v16M9 20h6"/></svg>
+            <span>文字</span>
+          </button>
+          <button type="button" class="tool-rail__btn" data-tool-tab="icons">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.3 7.7L22 12l-7.7 2.3L12 22l-2.3-7.7L2 12l7.7-2.3z"/></svg>
+            <span>图标</span>
+          </button>
+          <button type="button" class="tool-rail__btn" data-tool-tab="shapes">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1"/><circle cx="16.5" cy="16.5" r="4"/><path d="M14 5l6 6"/></svg>
+            <span>图形</span>
+          </button>
+          <button type="button" class="tool-rail__btn" data-tool-tab="images">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-4 4-3-3-6 5"/></svg>
+            <span>图片</span>
+          </button>
+          <button type="button" class="tool-rail__btn" data-tool-tab="pattern">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="1.5"/><circle cx="12" cy="6" r="1.5"/><circle cx="18" cy="6" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>
+            <span>纹理</span>
+          </button>
+        </div>
+        <div id="toolDrawer" class="tool-drawer"></div>
+      </div>
+    </aside>
+
+    <section class="editor-center" aria-label="名片画布工作区">
+      <div class="canvas-stage" id="canvasStage">
+        <div class="canvas-toolbar">
+          <label for="specSelect" class="sr-only">名片规格</label>
+          <select id="specSelect" class="canvas-select"></select>
+          <label for="cornerSelect" class="sr-only">圆角裁切</label>
+          <select id="cornerSelect" class="canvas-select">
+            <option value="0">直角 0mm</option>
+            <option value="3">圆角 3mm</option>
+            <option value="5">圆角 5mm</option>
+          </select>
+          <button type="button" class="guide-chip is-active" data-guide="bleed">出血线</button>
+          <button type="button" class="guide-chip is-active" data-guide="trim">裁切线</button>
+          <button type="button" class="guide-chip is-active" data-guide="safe">安全区</button>
+        </div>
+
+        <div id="canvasBleed" class="canvas-bleed">
+          <div id="guideBleed" class="guide-bleed"></div>
+          <div id="canvasTrim" class="canvas-trim">
+            <div id="canvasCardMount" style="width:100%;height:100%;"></div>
+            <div id="guideTrim" class="guide-trim"></div>
+            <div id="guideSafe" class="guide-safe"></div>
+            <div id="snapLines" class="snap-lines"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="canvasStatusLeft" class="canvas-status-left">90×54mm · 出血 3mm · 100%</div>
+
+      <div class="canvas-zoom-right">
+        <label for="zoomSlider" class="sr-only">画布缩放</label>
+        <input id="zoomSlider" type="range" min="50" max="200" value="100" step="5" style="width:88px;">
+        <span id="zoomLabel">100%</span>
+        <button type="button" id="zoomFitBtn" class="ef-chip" style="min-height:26px;">适应屏幕</button>
+      </div>
+
+      <div class="material-bar" aria-label="纸张材质与印刷工艺">
+        <div class="material-swatches" id="materialSwatches"></div>
+        <div class="craft-chips" id="craftChips"></div>
+      </div>
+    </section>
+
+    <aside class="editor-right" aria-label="3D 预览、属性与图层">
+      <div class="p3d-widget">
+        <div class="ws-panel-head">
+          <h2 class="ws-panel-title">3D 材质预览 ✦ <span class="p3d-webgl-badge">WebGL</span></h2>
+          <button type="button" id="expand3dBtn" class="ef-chip" style="min-height:28px;">⤢ 展开</button>
+        </div>
+        <div id="preview3dThumb" class="p3d-thumb-box" title="拖动旋转 3D 名片，双击复位"></div>
+      </div>
+
+      <div id="propPanel" class="prop-widget"></div>
+      <div id="layerPanel" class="layer-widget" hidden></div>
+    </aside>
+  </div>
+
+  <div id="modal3d" class="modal-3d" role="dialog" aria-modal="true" aria-labelledby="modal3dTitle" aria-hidden="true">
+    <div class="modal-3d__dialog">
+      <div class="ws-panel-head" style="margin-bottom:14px;">
+        <h2 id="modal3dTitle" style="font-size:18px;font-weight:700;">360° 3D 材质与工艺预览 ✦ <span class="p3d-webgl-badge">Three.js PBR</span></h2>
+        <button type="button" id="close3dBtn" class="ws-icon-btn" aria-label="关闭 3D 预览">×</button>
+      </div>
+      <div class="modal-3d__stage-wrap">
+        <div id="preview3dModalMount" class="modal-3d__stage"></div>
+        <span class="modal-3d__hint">拖拽 360° 旋转 · 滚轮微距缩放 · 双击复位</span>
+      </div>
+      <div class="modal-3d__controls">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button type="button" class="ef-chip" data-3d-view="front">正面</button>
+          <button type="button" class="ef-chip" data-3d-view="back">背面</button>
+          <button type="button" class="ef-chip" data-3d-view="side">侧面厚度</button>
+          <button type="button" class="ef-chip" data-3d-view="macro">微距材质</button>
+          <span class="modal-3d__divider" aria-hidden="true"></span>
+          <button type="button" class="ef-chip is-active" data-3d-env="studio">柔光影棚</button>
+          <button type="button" class="ef-chip" data-3d-env="stage">舞台聚光</button>
+          <button type="button" class="ef-chip" data-3d-env="sunlit">学园窗光</button>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;">
+            <span>光照角度</span>
+            <input id="lightAngleSlider" type="range" min="0" max="360" value="120">
+          </label>
+          <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;">
+            <span>自动旋转</span>
+            <button type="button" id="autoRotateToggle" class="ws-switch" role="switch" aria-checked="false"></button>
+          </label>
+        </div>
+        <div id="modal3dTags" style="font-size:12px;color:var(--orange-700);font-weight:600;width:100%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/vendor/three.min.js"></script>
+  <script type="module" src="assets/js/pages/editor.mjs"></script>
+</body>
+</html>
