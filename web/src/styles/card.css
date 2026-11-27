@@ -1,0 +1,496 @@
+/* Core Business Card Visual Engine (.bcard) - Multi-style General Creator Templates */
+/* Zero artificial glare or sweeping animations; pure tactile paper stocks & surface crafts. */
+
+.bcard-frame {
+  width: 100%;
+  container-type: inline-size;
+  position: relative;
+  user-select: none;
+}
+
+.bcard {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 38px -12px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.06);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.bcard__face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 5.5cqw 6.2cqw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #ffffff;
+  color: #0f172a;
+  overflow: hidden;
+}
+
+.bcard--v .bcard__face {
+  padding: 7.5cqw 7cqw;
+}
+
+.bcard--s .bcard__face {
+  padding: 6.5cqw;
+}
+
+/* Paper Stocks */
+.stock-matte .bcard__face {
+  background-color: #ffffff;
+}
+
+.stock-cotton .bcard__face {
+  background-color: #fcfbf8;
+  background-image: radial-gradient(rgba(120, 113, 108, 0.05) 1px, transparent 0);
+  background-size: 6px 6px;
+}
+
+.stock-pearl .bcard__face {
+  background-color: #f8fafc;
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(226, 232, 240, 0.35));
+}
+
+.stock-washi .bcard__face {
+  background-color: #faf6ee;
+  background-image: repeating-linear-gradient(
+    -35deg,
+    rgba(168, 162, 158, 0.05) 0px,
+    rgba(168, 162, 158, 0.05) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
+
+.stock-black .bcard__face,
+.bcard.is-dark .bcard__face {
+  background-color: #131620;
+  color: #f8fafc;
+}
+
+.stock-pvc .bcard__face {
+  background-color: rgba(238, 246, 252, 0.88);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(219, 234, 254, 0.38));
+}
+
+.stock-pvc.is-dark .bcard__face {
+  background-color: rgba(18, 24, 38, 0.92);
+  color: #f8fafc;
+}
+
+/* Style Families */
+.bcard--editorial .bcard__name,
+.bcard--editorial .bcard__back-title {
+  font-family: "Noto Serif SC", Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+.bcard--swiss .bcard__content {
+  border-left: 1.5px solid color-mix(in srgb, var(--brand) 38%, transparent);
+  padding-left: 3.4cqw;
+}
+
+.bcard--pastel .bcard__face {
+  background-image: radial-gradient(
+    circle at 92% 14%,
+    color-mix(in srgb, var(--brand-accent) 90%, #ffffff) 0%,
+    transparent 55%
+  );
+}
+
+/* Decorative Layers */
+.bcard__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.3;
+  background-image: radial-gradient(color-mix(in srgb, var(--brand) 16%, transparent) 0.9px, transparent 0.9px);
+  background-size: 4.5cqw 4.5cqw;
+}
+
+.bcard--minimal .bcard__pattern {
+  opacity: 0.08;
+}
+
+.bcard__ribbon {
+  position: absolute;
+  pointer-events: none;
+  background: var(--brand);
+  opacity: 0.9;
+}
+
+.layout--clean .bcard__ribbon {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1.1cqw;
+}
+
+.layout--split .bcard__ribbon {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3.8cqw;
+}
+
+.layout--band .bcard__ribbon {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2.2cqw;
+}
+
+.layout--frame .bcard__ribbon {
+  left: 2.8cqw;
+  right: 2.8cqw;
+  top: 2.8cqw;
+  bottom: 2.8cqw;
+  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--brand) 55%, transparent);
+  border-radius: 0 12px 0 12px;
+}
+
+.layout--monolith .bcard__ribbon {
+  right: 0;
+  top: 0;
+  width: 36%;
+  height: 1.2cqw;
+}
+
+.layout--grid .bcard__ribbon {
+  left: 6cqw;
+  right: 6cqw;
+  top: 48%;
+  height: 1px;
+  opacity: 0.35;
+}
+
+.layout--duo .bcard__ribbon {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4.8cqw;
+  opacity: 0.14;
+}
+
+.layout--badge .bcard__ribbon {
+  right: 5cqw;
+  top: 5cqw;
+  width: 12cqw;
+  height: 1.4cqw;
+  border-radius: 999px;
+}
+
+.bcard__deco-frame {
+  position: absolute;
+  right: 3cqw;
+  bottom: 3cqw;
+  width: 7cqw;
+  height: 7cqw;
+  border-right: 1.5px solid color-mix(in srgb, var(--brand) 38%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--brand) 38%, transparent);
+  pointer-events: none;
+}
+
+/* Uploaded Standee / Illustration Layer */
+.bcard__standee {
+  position: absolute;
+  right: 3.5cqw;
+  top: 14cqw;
+  bottom: 12cqw;
+  width: 34%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bcard--v .bcard__standee {
+  left: 7cqw;
+  right: 7cqw;
+  top: 14cqw;
+  bottom: auto;
+  width: auto;
+  height: 36%;
+}
+
+.bcard__standee-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Front Content */
+.bcard__content,
+.bcard__back-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.bcard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2cqw;
+}
+
+.bcard__company {
+  font-size: 2.35cqw;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.bcard__tags {
+  display: flex;
+  align-items: center;
+  gap: 1.5cqw;
+}
+
+.bcard__code,
+.bcard__event {
+  font-size: 1.95cqw;
+  font-weight: 600;
+  padding: 0.45cqw 1.4cqw;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  color: inherit;
+}
+
+.bcard.is-dark .bcard__code,
+.bcard.is-dark .bcard__event {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.bcard__identity {
+  margin: auto 0;
+  padding: 2cqw 0;
+}
+
+.bcard__name {
+  font-size: 6.2cqw;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.bcard--v .bcard__name {
+  font-size: 7.4cqw;
+}
+
+.bcard--s .bcard__name {
+  font-size: 6.8cqw;
+}
+
+.bcard__en {
+  font-size: 2.3cqw;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  margin-top: 0.9cqw;
+}
+
+.bcard__title {
+  font-size: 2.85cqw;
+  font-weight: 600;
+  margin-top: 1.5cqw;
+  opacity: 0.88;
+}
+
+.bcard__bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3cqw;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  padding-top: 2cqw;
+}
+
+.bcard--v .bcard__bottom,
+.bcard--s .bcard__bottom {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.8cqw;
+}
+
+.bcard__sns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1cqw 2.4cqw;
+  font-size: 2.05cqw;
+}
+
+.bcard__sns-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7cqw;
+}
+
+.bcard__sns-k {
+  font-weight: 800;
+  color: var(--brand);
+  font-size: 1.8cqw;
+}
+
+.bcard__motto {
+  font-size: 2cqw;
+  font-style: italic;
+  opacity: 0.72;
+  max-width: 44%;
+  text-align: right;
+}
+
+.bcard--v .bcard__motto,
+.bcard--s .bcard__motto {
+  max-width: 100%;
+  text-align: left;
+}
+
+/* Back Content */
+.bcard__back-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  padding-bottom: 1.6cqw;
+}
+
+.bcard__back-title {
+  font-size: 3cqw;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--brand);
+}
+
+.bcard__back-sub {
+  font-size: 2cqw;
+  opacity: 0.65;
+}
+
+.bcard__back-center {
+  display: flex;
+  align-items: center;
+  gap: 4.5cqw;
+  margin: auto 0;
+}
+
+.bcard--v .bcard__back-center,
+.bcard--s .bcard__back-center {
+  flex-direction: column;
+  text-align: center;
+  gap: 3cqw;
+}
+
+.bcard__qr {
+  width: 21cqw;
+  height: 21cqw;
+  flex-shrink: 0;
+  background: #ffffff;
+  padding: 1.1cqw;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.bcard--v .bcard__qr,
+.bcard--s .bcard__qr {
+  width: 29cqw;
+  height: 29cqw;
+}
+
+.bcard__qr svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.bcard__back-name {
+  font-size: 4cqw;
+  font-weight: 800;
+}
+
+.bcard__back-url {
+  font-size: 2.3cqw;
+  color: var(--brand);
+  margin-top: 0.9cqw;
+  word-break: break-all;
+}
+
+.bcard__back-motto {
+  font-size: 2.1cqw;
+  opacity: 0.72;
+  margin-top: 1.2cqw;
+}
+
+.bcard__back-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.9cqw;
+  opacity: 0.55;
+}
+
+/* Custom Canvas Overlay */
+.el-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.bcard-el {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+/* Surface Crafts (Static Realistic Shading Only — Zero Glare/Sweep) */
+.craft-gold {
+  color: #b8861b !important;
+  -webkit-text-fill-color: #b8861b;
+  text-shadow: 0 1px 0 rgba(255, 240, 180, 0.55);
+}
+
+.craft-silver {
+  color: #8a94a2 !important;
+  -webkit-text-fill-color: #8a94a2;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.craft-copper {
+  color: #a85532 !important;
+  -webkit-text-fill-color: #a85532;
+  text-shadow: 0 1px 0 rgba(255, 214, 190, 0.45);
+}
+
+.craft-emboss {
+  text-shadow: -0.7px -0.7px 0 rgba(255, 255, 255, 0.85), 1px 1.4px 1.2px rgba(15, 23, 42, 0.28);
+}
+
+.craft-deboss {
+  text-shadow: 0.7px 0.7px 0 rgba(255, 255, 255, 0.7), -0.8px -1px 1.2px rgba(15, 23, 42, 0.35);
+}
+
+.craft-uv {
+  filter: contrast(1.06) saturate(1.12);
+}
+
+.craft-velvet {
+  filter: contrast(0.95);
+  letter-spacing: 0.02em;
+}
+
+.craft-brushed {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}

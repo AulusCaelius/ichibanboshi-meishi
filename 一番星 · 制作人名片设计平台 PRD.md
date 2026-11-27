@@ -677,3 +677,16 @@ flowchart LR
   --ease-prefill: opacity 0.2s ease;
 }
 ```
+
+---
+
+## 10. 正式版架构升级记录（v1.0 · 纯本地优先 + 通用多风格模板）
+
+为提升可维护性与纯离线可用性，`v1.0` 已彻底移除 `app/` 后端模块，并于 `web/` 目录重构为纯前端工程：
+
+- **前端技术栈**：`React 19` + `TypeScript` + `Vite 8` + `Zustand` + `Tailwind CSS v4` + `Three.js` + `Vitest`。
+- **纯本地持久化与导入续作**：
+  - 全部名片作品、上传插画、新建/修改模板及创作者资料自动写入浏览器 `IndexedDB`（`localStorage` 镜像兜底）。
+  - 支持 `.ichiban-backup.json`（全量工作台备份，兼容增量合并与覆盖恢复）、`.ichiban-card.json`（单张名片工程）与 `.ichiban-template.json`（可复用模板）导入/导出。
+- **通用多风格模板库**：移除特定偶像设定与称呼，提供 60 套（`G01`–`G60`）面向独立创作者与泛设计交流场景的通用模板，涵盖六大风格：极简留白（`minimal`）、现代几何（`modern`）、杂志社论（`editorial`）、暗夜先锋（`obsidian`）、柔和渐变（`pastel`）与秩序商务（`swiss`）。
+
