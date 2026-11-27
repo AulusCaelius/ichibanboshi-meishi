@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>印前检查与导出 · 一番星 ICHIBANBOSHI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&family=Poppins:wght@400;600;700&family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css?v=r5">
+  <link rel="stylesheet" href="assets/css/base.css?v=r5">
+  <link rel="stylesheet" href="assets/css/workspace.css?v=r5">
+  <link rel="stylesheet" href="assets/css/export.css?v=r5">
+</head>
+<body class="ws-body ws-body--scroll">
+  <header class="ws-topbar">
+    <div class="ws-topbar__left">
+      <a href="editor.html" id="expBackEditor" class="ws-back-btn" aria-label="返回编辑器">←</a>
+      <div class="ws-breadcrumb">
+        <a href="editor.html">编辑器</a>
+        <span class="ws-breadcrumb__sep">/</span>
+        <span>印前检查与导出</span>
+      </div>
+      <span id="expSaveStatus" class="ws-save-status"><i class="ws-save-status__star" aria-hidden="true">✦</i> 已自动保存</span>
+    </div>
+
+    <div class="ws-topbar__right">
+      <a href="works.html" class="ws-nav-btn">我的作品</a>
+      <a href="phygital.html" class="ws-nav-btn">Phygital 双栖</a>
+    </div>
+  </header>
+
+  <main class="export-main">
+    <!-- 左栏 7 栏：Preflight 印前质检清单 -->
+    <section class="export-card" aria-label="Preflight 印前质检">
+      <div class="ws-panel-head" style="margin-bottom:16px;">
+        <h1 style="font-size:20px;font-weight:700;">Preflight 印前质检清单 ✦</h1>
+        <button type="button" id="recheckBtn" class="chip" style="min-height:36px;">重新检查</button>
+      </div>
+
+      <div id="pfSummary" class="pf-summary pf-summary--ok">正在检测中…</div>
+      <div id="pfList" class="pf-list"></div>
+    </section>
+
+    <!-- 右栏 5 栏：导出配置与下载回执 -->
+    <aside class="export-card export-card--alt" aria-label="导出规格配置">
+      <div id="expConfigPanel">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">导出规格配置</h2>
+
+        <div class="export-preview-box">
+          <div id="expPreviewTabs" class="exp-preview-tabs" role="tablist" aria-label="预览面切换">
+            <button type="button" class="exp-preview-tab is-active" data-exp-tab="front" role="tab" aria-selected="true">正面成品</button>
+            <button type="button" class="exp-preview-tab" data-exp-tab="back" role="tab" aria-selected="false">背面成品</button>
+            <button type="button" class="exp-preview-tab" data-exp-tab="spot" role="tab" aria-selected="false" hidden>专色黑版</button>
+          </div>
+          <div id="expBleedWrap" class="export-bleed-wrap">
+            <div id="expPreviewCard"></div>
+            <svg id="expCropMarks" class="export-crop-marks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 6 V0 H6 M94 0 H100 V6 M0 94 V100 H6 M94 100 H100 V94" stroke="#333333" stroke-width="1.4" fill="none" vector-effect="non-scaling-stroke"/>
+            </svg>
+          </div>
+          <div id="expSpecCaption" class="export-spec-caption">成品 90×54mm · 含出血 96×60mm</div>
+        </div>
+
+        <div class="exp-group">
+          <div class="exp-label">导出格式</div>
+          <div class="exp-chips" id="fmtChips">
+            <button type="button" class="chip is-active" data-exp-fmt="pdf">PDF（推荐）</button>
+            <button type="button" class="chip" data-exp-fmt="svg">SVG</button>
+            <button type="button" class="chip" data-exp-fmt="png">PNG</button>
+            <button type="button" class="chip" data-exp-fmt="jpg">JPG</button>
+          </div>
+        </div>
+
+        <div class="exp-group">
+          <div class="exp-label">色彩空间</div>
+          <div class="exp-chips" id="colorChips">
+            <button type="button" class="chip is-active" data-exp-color="cmyk">CMYK（印刷）</button>
+            <button type="button" class="chip" data-exp-color="rgb">RGB（屏幕）</button>
+          </div>
+          <p id="colorForceHint" class="exp-note" hidden>PNG / JPG 为屏幕分享格式，已自动切换为 RGB</p>
+        </div>
+
+        <div class="exp-group">
+          <div class="exp-label">分辨率</div>
+          <div class="exp-chips" id="dpiChips">
+            <button type="button" class="chip is-active" data-exp-dpi="300">300 DPI</button>
+            <button type="button" class="chip" data-exp-dpi="600">600 DPI</button>
+          </div>
+        </div>
+
+        <div class="exp-group">
+          <div class="exp-label">出血设置</div>
+          <div class="exp-chips" id="bleedChips">
+            <button type="button" class="chip is-active" data-exp-bleed="3">3mm（推荐）</button>
+            <button type="button" class="chip" data-exp-bleed="2">2mm</button>
+            <button type="button" class="chip" data-exp-bleed="0">0mm</button>
+          </div>
+        </div>
+
+        <div class="ws-switch-row" style="margin-bottom:10px;">
+          <span style="font-size:13px;font-weight:600;">显示裁切线与套准标记</span>
+          <button type="button" id="cropMarksSwitch" class="ws-switch" role="switch" aria-checked="true"></button>
+        </div>
+
+        <div class="exp-group">
+          <div class="exp-label">文字处理</div>
+          <div class="exp-chips" id="textModeChips">
+            <button type="button" class="chip is-active" data-exp-text="outline">全部文字转曲</button>
+            <button type="button" class="chip" data-exp-text="embed">内嵌字体子集</button>
+          </div>
+        </div>
+
+        <div class="ws-switch-row" style="margin-bottom:14px;">
+          <span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
+            <span>分离导出工艺专色通道</span>
+            <span class="badge badge--foil">专色版</span>
+          </span>
+          <button type="button" id="spotSwitch" class="ws-switch" role="switch" aria-checked="false" aria-label="分离导出工艺专色通道"></button>
+        </div>
+        <p id="spotHint" style="font-size:11px;color:var(--gray-600);margin:-10px 0 14px;">开启后将输出 K100 专色黑版用于烫金 / 烫银 / 局部 UV / 凹凸制版</p>
+
+        <div class="exp-size-row">
+          <span>预估输出体积</span>
+          <span id="estSizeVal" style="color:var(--orange-700);">约 0.4 MB</span>
+        </div>
+
+        <div id="expBlockAlert" class="exp-block-alert" hidden>
+          <div>请先修复红色阻断项，或勾选忽略风险强行导出</div>
+          <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:var(--ink);font-weight:600;cursor:pointer;">
+            <input type="checkbox" id="ignoreRiskChk">
+            <span>忽略风险强行导出</span>
+          </label>
+        </div>
+
+        <button type="button" id="downloadPrintBtn" class="btn-cta" style="width:100%;">下载印刷文件</button>
+
+        <div id="expProgressWrap" class="exp-progress-wrap" hidden>
+          <div style="font-size:12px;font-weight:600;color:var(--orange-700);margin-bottom:6px;">正在生成印刷文件…</div>
+          <div class="exp-progress-bar">
+            <div id="expProgressFill" class="exp-progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成功回执卡 -->
+      <div id="expReceiptPanel" class="exp-receipt" hidden>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:32px;height:32px;border-radius:50%;background:var(--color-success);color:#fff;display:grid;place-items:center;font-weight:700;">✓</span>
+          <div>
+            <h2 style="font-size:18px;font-weight:700;">印刷文件已就绪</h2>
+            <p style="font-size:12px;color:var(--gray-600);">可下载矢量预览图或印刷规格单交付印厂</p>
+          </div>
+        </div>
+
+        <dl id="expReceiptSummary" class="exp-receipt__summary"></dl>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button type="button" id="dlMainAgainBtn" class="btn-cta" style="width:100%;">重新下载成品文件</button>
+          <button type="button" id="dlSpotBtn" class="btn-outline" style="width:100%;" hidden>下载专色工艺通道黑版 (.svg)</button>
+          <button type="button" id="dlSvgBtn" class="btn-outline" style="width:100%;">下载矢量预览 (.svg)</button>
+          <button type="button" id="dlTxtBtn" class="chip" style="width:100%;min-height:42px;">下载印刷规格单 (.txt)</button>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <a href="editor.html" class="chip" style="flex:1;">继续微调</a>
+          <a href="works.html" id="myWorksBtn" class="chip" style="flex:1;">前往我的作品</a>
+        </div>
+
+        <p style="font-size:12px;color:var(--gray-600);background:var(--cream-50);padding:10px 12px;border-radius:8px;">
+          已由前端高清印前引擎实时合成含出血 / 裁切标文件（PDF 1.4 / 高清 PNG / JPG / SVG 及专色 K100 蒙版）。
+        </p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 隐藏 540px 测量容器（用于 Preflight 字号与颜色精准测量） -->
+  <div id="pfMeasureSandbox" style="position:fixed;left:-9999px;top:0;width:540px;visibility:hidden;pointer-events:none;" aria-hidden="true"></div>
+
+  <script src="assets/js/data.js?v=r5"></script>
+  <script src="assets/js/card.js?v=r5"></script>
+  <script src="assets/js/common.js?v=r5"></script>
+  <script src="assets/js/store.js?v=r5"></script>
+  <script src="assets/js/project-render.js?v=r5"></script>
+  <script src="assets/js/preflight.js?v=r5"></script>
+  <script src="assets/js/print-export.js?v=r5"></script>
+  <script src="assets/js/export.js?v=r5"></script>
+</body>
+</html>
